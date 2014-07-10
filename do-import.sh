@@ -1,0 +1,1 @@
+mongorestore export/Celtra-events -port 27017
