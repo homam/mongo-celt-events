@@ -1,9 +1,22 @@
 #!/usr/local/bin/lsc
 
-db = require("mongojs").connect \172.30.0.160:27017/Celtra-events, [\events]
-sql = require \mssql
+# db = require("mongojs").connect \172.30.0.160:27017/Celtra-events, [\events, \reducedEvents]
+db = require("mongojs").connect \localhost/Celtra-events, [\events, \reducedEvents]
+
 fs = require \fs
-{map, Obj, fold, fold1} = require \prelude-ls
+{
+	promises: {
+		promise-monad
+		serial-sequence
+		new-promise
+		from-error-only-callback
+		from-error-value-callback
+		to-callback
+	}
+} = require \async-ls
+{map, find, Obj, fold, fold1} = require \prelude-ls
+{update-reduced-events} = require \./reduce-events
+{query-sql, fake-query-sql} = require \./query-sql
 
 exit = (msg) ->
 	db.close!
@@ -14,68 +27,61 @@ process.on \exit, (code) ->
 	db.close!
 	console.log "Exiting #code"
 
-config =
-	user: 'Mobitrans_EF_User'
-	password: 'g^h8yt#H'
-	server: '172.30.0.165'
-	database: 'Mobitrans'
+
+batch-process = (query-sql, batch-size, db) -->
+	update-reduced-events db
+		|> promise-monad.fbind ->
+			(res, rej) <- new-promise
+			db.reducedEvents
+			.find sql: $exists: false
+			.sort $natural: 1
+			.limit batch-size
+			, (err, records) ->
+				return rej err if !!err
+				res records
+		|> promise-monad.fbind (records) ->
+			query-sql <| map (._id), records
+		|> promise-monad.fbind (records) ->
+			serial-sequence <|
+				records |> map (r) ->
+					(res, rej) <- new-promise 
+					db.reducedEvents.update do
+						_id: r.visitId
+						{
+							$set: 
+								sql:
+									subscriberId: r.subscriberId
+									submissionId: r.submissionId
+									active: r.active
+									active12: r.active12
+									device:
+										brand: r.brand_name
+										model: r.model_name
+										marketing: r.marketing_name
+						}
+						(err, results) ->
+							return rej err if !!err
+							res results
+					
 
 
+do-batch-process = -> batch-process fake-query-sql, 500, db
 
+do-batch-process-loop = (processd-count = 0) ->
+	console.log \do-batch-process-loop
+	do-batch-process!
+		|> promise-monad.fbind (res) ->
+			if !!res and res.length > 0
+				do-batch-process-loop processd-count + res.length
+			else
+				promise-monad.pure processd-count
+#(err, res) <- to-callback <| batch-process fake-query-sql, 5000, db
+(err, res) <- to-callback do-batch-process-loop!
+console.log \error, err if !!err
+console.log "Updated #{res}"
+db.close!
 
-query = (callback) ->
-	db.events.find do 
-		"eventArgs.userParams.SiteID": 
-			$exists: true
-		ip: $ne: "80.227.47.62"
-	.sort $natural: -1
-	.limit 10
-	, callback
-
-
-
-
-
-(err, res) <- query
-exit err if !!err
-
-#TODO: First reduce the events then merge it with SQL
-sql-query = fs.readFileSync 'sql-queries/sql-query.sql', 'utf8'
-sql-query = sql-query.replace "{{VIDs}}", (( map (.userId)) <| res)
-
-(err) <- sql.connect config
-exit err if !!err
-
-request = new sql.Request!
-
-(err, sql-records) <- request.query sql-query
-exit err if !!err
-
-updaters = sql-records |> map (r) -> -> 
-	console.log "Updating #{r.VID}"
-	db.events.update do
-		userId: r.VID
-		{
-			$set: 
-				merged:
-					sid: r.SubscriberId
-					submissionId: r.RequestId
-					active: r.Active
-					active12: r.Active_12
-					device:
-						brand: r.brand_name
-						model: r.model_name
-						marketing: r.marketing_name
-		} 
-
-
-
-console.log updaters.0!
-console.log updaters.2!
-
-#TODO: update node
-
-return exit null
+return
 
 
 

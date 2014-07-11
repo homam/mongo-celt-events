@@ -4,6 +4,7 @@
   "description": "",
   "main": "query.js",
   "dependencies": {
+    "async-ls": "0.0.1",
     "mongojs": "^0.13.0",
     "mssql": "^1.0.2",
     "prelude-ls": "^1.1.1"
