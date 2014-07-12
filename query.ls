@@ -24,6 +24,7 @@ query = ->
 		creativeId: 1
 		placementId: 1
 		siteId: 1
+		"creationTimes": $slice: 1
 		"sql.subscriberId": 1
 		"sql.active": 1
 		"sql.active12": 1
@@ -34,7 +35,6 @@ query = ->
 	, (err, results) ->
 		return rej err if !!err
 		res results
-
 
 query = ->
 	(res, rej) <- new-promise
@@ -72,6 +72,51 @@ query = ->
 			return rej err if !!err
 			res results
 	)
+
+
+query = ->
+	(res, rej) <- new-promise
+	db.reducedEvents.aggregate(
+		[
+			{
+				$project:
+					_id: 1
+					creationTimes: 1
+					country: 1
+					banner: 1
+					visits: 1
+					creativeId: 1
+					placementId: 1
+					siteId: 1
+					"sql.subscriberId": 1
+					"sql.device.marketing": 1
+
+			},
+			{
+				$group:
+					_id: "$_id"
+					time: $first: "$creationTimes"
+					uvisits: $sum: 1
+					visits: $sum: "$visits"
+					subscribers: $sum: { $cond: [ { $gt: [ "$sql.subscriberId", 0 ] } , 1, 0 ] }
+			},
+			{
+				$group:
+					_id: "$time"
+					uvisits: $sum: "$uvisits"
+					visits: $sum: "$visits"
+					subscribers: $sum: "$subscribers"
+			},
+			{
+				$sort:
+					subscribers: 1
+			}
+		]
+		, (err, results) ->
+			return rej err if !!err
+			res results
+	)
+
 
 (err, res) <- to-callback <| query!
 console.log \error, err if !!err
