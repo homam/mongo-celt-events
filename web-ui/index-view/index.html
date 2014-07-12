@@ -1,0 +1,59 @@
+<html>
+	<head>
+		<title><%= title %></title>
+		<script src="/libs/prelude-browser.js"></script>
+		<script src="/libs/d3.js"></script>
+		<style type="text/css">
+			body {
+				font-family: menlo, monospace;
+			}
+			thead {
+				font-weight: bold;
+			}
+			td {
+				padding: 0.3em 0.5em 0 0;
+				vertical-align: top;
+			}
+			section[data-main-view] {
+				display: none;
+			}
+			section.visible[data-main-view] {
+				display: block;
+			}
+		</style>
+	</head>
+	<body>
+		<section data-main-view="main">
+			<table class="banners">
+				<thead><tr></tr></thead>
+				<tbody></tbody>
+			</table>
+
+			<div>
+				<table class="devices">
+					<thead><tr></tr></thead>
+					<tbody></tbody>
+				</table>				
+			</div>
+		</section>
+		<section data-main-view="creative">
+			<table class="placements">
+				<thead><tr></tr></thead>
+				<tbody></tbody>
+			</table>
+		</section>
+		<section data-main-view="placement">
+			<table class="siteids">
+				<thead><tr></tr></thead>
+				<tbody></tbody>
+			</table>
+		</section>
+
+		<script src="/libs/promises-browser-all.js"></script>
+		<script src="/graphs/table.js"></script>
+		<script src="/index/scripts/router.js"></script>
+		<script src="/index/scripts/main.js"></script>
+		<script src="/index/scripts/creative.js"></script>
+		<script src="/index/scripts/placement.js"></script>
+	</body>
+</html>

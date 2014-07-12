@@ -1,1 +1,0 @@
-db.events.find({"eventArgs.userParams.SiteID": {$exists: true}, ip: {$ne: "80.227.47.62"}}).sort({$natural: -1})
