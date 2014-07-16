@@ -1,7 +1,7 @@
 #!/usr/local/bin/lsc
 
-# db = require("mongojs").connect \172.30.0.160:27017/Celtra-events, [\events, \reducedEvents]
-db = require("mongojs").connect \localhost/Celtra-events, [\events, \reducedEvents]
+db = require("mongojs").connect \172.30.0.160:27017/Celtra-events, [\events, \reducedEvents]
+#db = require("mongojs").connect \localhost/Celtra-events, [\events, \reducedEvents]
 
 fs = require \fs
 {
@@ -65,7 +65,7 @@ batch-process = (query-sql, batch-size, db) -->
 					
 
 
-do-batch-process = -> batch-process fake-query-sql, 500, db
+do-batch-process = -> batch-process query-sql, 500, db
 
 do-batch-process-loop = (processd-count = 0) ->
 	console.log \do-batch-process-loop

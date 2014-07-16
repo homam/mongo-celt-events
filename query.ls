@@ -11,7 +11,7 @@
 sql = require \mssql
 fs = require \fs
 
-db = require("mongojs").connect \localhost/Celtra-events, [\events, \reducedEvents]
+db = require("mongojs").connect \172.30.0.160:27017/Celtra-events, [\events, \reducedEvents]
 
 _query = ->
 	(res, rej) <- new-promise

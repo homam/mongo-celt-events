@@ -12,6 +12,7 @@
 
 aggregate = (db, group-obj, match-obj = {}) ->
 	(res, rej) <- new-promise
+	match-obj <<< sql: $exists: true
 	group-operator = {
 		uvisits: $sum: 1
 		visits: $sum: "$visits"

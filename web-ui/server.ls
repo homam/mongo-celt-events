@@ -10,10 +10,13 @@ path = require \path
 http = require \http
 body-parser = require \body-parser
 {map, pairs-to-obj} = require \prelude-ls
-db = require("mongojs").connect \localhost/Celtra-events, [\reducedEvents]
+
+#db = require("mongojs").connect \localhost/Celtra-events, [\reducedEvents]
+db = require("mongojs").connect \172.30.0.160:27017/Celtra-events, [\reducedEvents]
 
 # start the http server: lsc server.ls --port=3002
 {port} = (process.argv.slice(2) |> require \minimist)
+port = port or 3002p
 
 
 app = express!

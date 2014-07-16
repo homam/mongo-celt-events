@@ -1,1 +1,1 @@
- mongodump --host 172.30.0.160:27017 --db Celtra-events --out export
+ mongodump --host 172.30.0.160:27017 --db Celtra-events --collection reducedEvents --out export
