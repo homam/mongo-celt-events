@@ -1,5 +1,6 @@
 {map, sort, sort-by, mean} = require \prelude-ls
-db = require("mongojs").connect \localhost/MA, [\IOSEvents]
+db = require \./config .connect!
+
 one-day =  1000*60*60*24
 from-time = 0*one-day
 to-time = 2*one-day

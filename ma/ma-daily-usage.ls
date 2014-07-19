@@ -1,5 +1,5 @@
 {map, sort-by, flatten} = require \prelude-ls
-db = require("mongojs").connect \172.30.0.160/MA, [\IOSEvents, \mylogs]
+db = require \./config .connect!
 
 reduce-f = (key, values) ->
 
