@@ -16,7 +16,7 @@ query = (callback) ->
 					sessionNumber: $exists: 1
 					subSessionNumber: $exists: 1
 					"event.name": "transition"
-					"event.toView.name": "Flashcard"
+					"event.toView.name": $in: ["Flashcard", "EOC"]
 					"event.toView.chapterIndex": $exists: 1
 					"event.toView.courseId": $exists: 1
 					timeDelta: $exists: 1
@@ -28,6 +28,7 @@ query = (callback) ->
 					timeDelta: 1
 					date: $subtract: [{$divide: ["$timeDelta", one-day]}, {$mod: [{$divide: ["$timeDelta", one-day]}, 1]}]
 					courseChapter: course: "$event.toView.courseId", chapter: "$event.toView.chapterIndex"
+					view: "$event.toView.name"
 			}
 			{
 				$group: 
@@ -36,10 +37,12 @@ query = (callback) ->
 						session: "$session"
 					}
 					date: $min: "$date"
-					courseChapters: $addToSet: "$courseChapter"
+					chapters: $addToSet: "$courseChapter"
+					flashcards: $sum: $cond: [{$eq: ["$view", "Flashcard"]}, 1, 0]
+					eocs: $sum: $cond: [{$eq: ["$view", "EOC"]}, 1, 0]
 			}
 			{
-				$unwind: "$courseChapters"
+				$unwind: "$chapters"
 			}
 			{
 				$group: 
@@ -47,13 +50,17 @@ query = (callback) ->
 						adId: "$_id.adId"
 						date: "$date"
 					}
-					courseChapters: $sum: 1
+					chapters: $sum: 1
+					flashcards: $first: "$flashcards"
+					eocs: $first: "$eocs"
 			}
 			{
 				$group:
 					_id: "$_id.date"
 					users: $sum: 1
-					courseChapters: $avg: "$courseChapters"
+					chapters: $avg: "$chapters"
+					flashcards: $avg: "$flashcards"
+					eocs: $avg: "$eocs"
 			}
 		]
 		callback
@@ -63,6 +70,6 @@ console.log "Error", err if !!err
 
 
 
-console.log <| res |> sort-by (._id) |> map ({_id, users, courseChapters}) -> {day: _id, users, chapters: (Math.round courseChapters*10)/10}
+console.log <| res |> sort-by (._id) # |> map ({_id, users, chapters}) -> {day: _id, users, chapters: (Math.round chapters*10)/10}
 db.close!
 return
