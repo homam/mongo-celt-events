@@ -27,22 +27,24 @@ query = (callback) ->
 					session: $add: [$multiply: ["$sessionNumber", 1000], "$subSessionNumber"]
 					timeDelta: 1
 					date: $subtract: [{$divide: ["$timeDelta", one-day]}, {$mod: [{$divide: ["$timeDelta", one-day]}, 1]}]
-					courseChapter: course: "$event.toView.courseId", chapter: "$event.toView.chapterIndex"
+					course: "$event.toView.courseId"
+					chapter: "$event.toView.chapterIndex"
+					card: "$event.toView.cardIndex"
 					view: "$event.toView.name"
 			}
 			{
 				$group: 
 					_id: {
 						adId: "$adId"
-						session: "$session"
+						course: "$course"
+						chapter:
+							co: "$course" 
+							ch: "$chapter"
+						card: "$card"
 					}
 					date: $min: "$date"
-					chapters: $addToSet: "$courseChapter"
-					flashcards: $sum: $cond: [{$eq: ["$view", "Flashcard"]}, 1, 0]
+					cards: $sum: $cond: [{$eq: ["$view", "Flashcard"]}, 1, 0]
 					eocs: $sum: $cond: [{$eq: ["$view", "EOC"]}, 1, 0]
-			}
-			{
-				$unwind: "$chapters"
 			}
 			{
 				$group: 
@@ -50,17 +52,89 @@ query = (callback) ->
 						adId: "$_id.adId"
 						date: "$date"
 					}
-					chapters: $sum: 1
-					flashcards: $first: "$flashcards"
+					courses: $addToSet: "$_id.course"
+					chapters: $addToSet: "$_id.chapter"
+					cards: $sum: "$cards"
+					eocs: $sum: "$eocs"
+			}
+			# {
+			# 	$group:
+			# 		_id: "$_id.date"
+			# 		users: $sum: 1
+			# 		cards: $sum: "$cards"
+			# 		eocs: $sum: "$eocs"
+			# }
+		]
+		callback
+
+
+
+
+query = (callback) ->
+	db.IOSEvents.aggregate do
+		[
+			{
+				$match:
+					sessionNumber: $exists: 1
+					subSessionNumber: $exists: 1
+					"event.name": "transition"
+					"event.toView.name": $in: ["Flashcard", "EOC"]
+					"event.toView.chapterIndex": $exists: 1
+					"event.toView.courseId": $exists: 1
+					timeDelta: $exists: 1
+			}
+			{
+				$project:
+					adId: "$device.adId"
+					session: $add: [$multiply: ["$sessionNumber", 1000], "$subSessionNumber"]
+					timeDelta: 1
+					date: $subtract: [{$divide: ["$timeDelta", one-day]}, {$mod: [{$divide: ["$timeDelta", one-day]}, 1]}]
+					course: "$event.toView.courseId"
+					chapter: "$event.toView.chapterIndex"
+					card: "$event.toView.cardIndex"
+					view: "$event.toView.name"
+			}
+			{
+				$group: 
+					_id: {
+						chapter: $add: ["$chapter", $multiply: ["$course", 1000]]
+						session: "$session"
+						adId: "$adId"
+					}
+					date: $min: "$date"
+					cards: $addToSet: "$card" # $sum: $cond: [{$eq: ["$view", "Flashcard"]}, 1, 0]
+					eocs: $sum: $cond: [{$eq: ["$view", "EOC"]}, 1, 0]
+			}
+			{
+				$project:
+					_id: 1
+					date: 1
+					cards: 1
+					eocs: $cond: [{$gte: ["$eocs", 1]}, 1, 0]
+			}
+			{
+				$unwind: "$cards"
+			}
+			{
+				$group: 
+					_id: "$_id"
+					date: $first: "$date"
+					cards: $sum: 1
 					eocs: $first: "$eocs"
 			}
 			{
 				$group:
-					_id: "$_id.date"
+					_id: date: "$date", adId: "$_id.adId"
 					users: $sum: 1
-					chapters: $avg: "$chapters"
-					flashcards: $avg: "$flashcards"
-					eocs: $avg: "$eocs"
+					cards: $sum: "$cards"
+					eocs: $sum: "$eocs"
+			}
+			{
+				$group:
+					_id: "$_id.date"
+					users: $sum: "$users"
+					cards: $sum: "$cards"
+					eocs: $sum: "$eocs"
 			}
 		]
 		callback
