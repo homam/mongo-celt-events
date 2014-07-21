@@ -1,6 +1,13 @@
-db = require \./config .connect!
+{
+	promises: {
+		promise-monad
+		new-promise
+	}
+} = require \async-ls
 
-query = (callback) ->
+query = (db, limit) ->
+	limit = limit or 20
+	(success, reject) <- new-promise
 	db.IOSUsers.aggregate do
 		[
 			{
@@ -8,7 +15,7 @@ query = (callback) ->
 					_id: -1
 			}
 			{
-				$limit: 20
+				$limit: limit
 			}
 			{
 				$project:
@@ -21,12 +28,9 @@ query = (callback) ->
 					time: "$creationTimestamp"
 			}
 		]
-		callback
+		(err, res) ->
+			return reject err if !!err
+			success res
 
 
-(err, res) <- query
-console.log "Error", err if !!err
-
-console.log <| res
-
-db.close!
+module.exports = query

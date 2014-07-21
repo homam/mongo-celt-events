@@ -1,3 +1,4 @@
 *.js
 !public/libs/promises-browser-all.js
 *.log
+*.css

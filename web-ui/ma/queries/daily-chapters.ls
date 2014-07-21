@@ -1,17 +1,16 @@
+{
+	promises: {
+		promise-monad
+		new-promise
+	}
+} = require \async-ls
 {map, sort, sort-by, mean} = require \prelude-ls
-moment = require \moment
-db = require \./config .connect!
+
 
 one-hour = 1000*60*60
 one-day =  one-hour*24
 from-time = 0*one-day
 to-time = 10*one-day
-
-query-from = moment "2014-07-15" .unix! * 1000
-query-to   = moment "2014-07-22" .unix! * 1000
-
-sample-from = moment "2014-07-17" .unix! * 1000
-sample-to   = moment "2014-07-22" .unix! * 1000
 
 
 # How many different chapters have been visited per day
@@ -22,7 +21,8 @@ sample-to   = moment "2014-07-22" .unix! * 1000
 # But if the same chapter has been visited M times during the same session,
 # this query counts it only one time. 
 
-query = (callback) ->
+query = (db, query-from, query-to, sample-from = null, sample-to = null) ->
+	(success, reject) <- new-promise
 	db.IOSEvents.aggregate do
 		[
 			{
@@ -47,10 +47,14 @@ query = (callback) ->
 						co: "$event.toView.courseId"
 						session: $add: [$multiply: ["$sessionNumber", 1000], "$subSessionNumber"]
 			}
-			{
-				$match:
-					installTime: $gte: sample-from, $lte: sample-to
-			}
+		] ++ ( 
+				if !!sample-from and !!sample-to then
+					[
+						$match:
+							installTime: $gte: sample-from, $lte: sample-to
+					] 
+				else []
+		) ++ [
 			{
 				$group: 
 					_id: {
@@ -75,13 +79,8 @@ query = (callback) ->
 			}
 			
 		]
-		callback
+		(err, res) ->
+			return reject err if !!err
+			success <| res |> sort-by (._id)
 
-(err, res) <- query
-console.log "Error", err if !!err
-
-
-
-console.log <| res |> sort-by (._id) # |> map ({_id, users, chapters}) -> {day: _id, users, chapters: (Math.round chapters*10)/10}
-db.close!
-return
+module.exports = query
