@@ -1,4 +1,5 @@
 {map, sort, sort-by, mean} = require \prelude-ls
+moment = require \moment
 db = require \./config .connect!
 
 one-hour = 1000*60*60
@@ -6,69 +7,12 @@ one-day =  one-hour*24
 from-time = 0*one-day
 to-time = 10*one-day
 
-
-query = (callback) ->
-	db.IOSEvents.aggregate do
-		[
-			{
-				$match:
-					"device.adId": $exists: 1
-					sessionNumber: $exists: 1
-					subSessionNumber: $exists: 1
-					"event.name": "transition"
-					"event.toView.name": $in: ["Flashcard", "EOC"]
-					"event.toView.chapterIndex": $exists: 1
-					"event.toView.courseId": $exists: 1
-					timeDelta: $exists: 1
-			}
-			{
-				$project:
-					adId: "$device.adId"
-					session: $add: [$multiply: ["$sessionNumber", 1000], "$subSessionNumber"]
-					timeDelta: 1
-					date: $subtract: [{$divide: ["$timeDelta", one-day]}, {$mod: [{$divide: ["$timeDelta", one-day]}, 1]}]
-					course: "$event.toView.courseId"
-					chapter: "$event.toView.chapterIndex"
-					card: "$event.toView.cardIndex"
-					view: "$event.toView.name"
-			}
-			{
-				$group: 
-					_id: {
-						adId: "$adId"
-						course: "$course"
-						chapter:
-							co: "$course" 
-							ch: "$chapter"
-						card: "$card"
-					}
-					date: $min: "$date"
-					cards: $sum: $cond: [{$eq: ["$view", "Flashcard"]}, 1, 0]
-					eocs: $sum: $cond: [{$eq: ["$view", "EOC"]}, 1, 0]
-			}
-			{
-				$group: 
-					_id: {
-						adId: "$_id.adId"
-						date: "$date"
-					}
-					courses: $addToSet: "$_id.course"
-					chapters: $addToSet: "$_id.chapter"
-					cards: $sum: "$cards"
-					eocs: $sum: "$eocs"
-			}
-			# {
-			# 	$group:
-			# 		_id: "$_id.date"
-			# 		users: $sum: 1
-			# 		cards: $sum: "$cards"
-			# 		eocs: $sum: "$eocs"
-			# }
-		]
-		callback
+query-from = moment "2014-07-15" .unix! * 1000
+query-to   = moment "2014-07-22" .unix! * 1000
 
 
-
+# if the user visits the same Flashcard / EOC twice in the same [session + subSession]
+# this query count it as once
 
 query = (callback) ->
 	db.IOSEvents.aggregate do
@@ -82,6 +26,7 @@ query = (callback) ->
 					"event.toView.chapterIndex": $exists: 1
 					"event.toView.courseId": $exists: 1
 					timeDelta: $exists: 1
+					serverTime: $gte: query-from, $lte: query-to
 			}
 			{
 				$project:
@@ -138,18 +83,42 @@ query = (callback) ->
 			{
 				$group:
 					_id: date: "$date", adId: "$_id.adId"
-					users: $sum: 1
+					sessions: $addToSet: "$_id.session"
 					cards: $sum: "$cards"
 					eocs: $sum: "$eocs"
 					chapters: $sum: "$chapters"
 			}
 			{
+				$unwind: "$sessions"
+			}
+			{
+				$group:
+					_id: "$_id"
+					sessions: $sum: 1
+					cards: $first: "$cards"
+					chapters: $first: "$chapters"
+					eocs: $first: "$eocs"
+			}
+			{
 				$group:
 					_id: "$_id.date"
-					users: $sum: "$users"
+					sessions: $sum: "$sessions"
+					users: $addToSet: "$_id.adId"
 					cards: $sum: "$cards"
 					chapters: $sum: "$chapters"
 					eocs: $sum: "$eocs"
+			}
+			{
+				$unwind: "$users"
+			}
+			{
+				$group:
+					_id: "$_id"
+					sessions: $first: "$sessions"
+					users: $sum: 1
+					card: $first: "$cards"
+					chapters: $first: "$chapters"
+					eocs: $first: "$eocs"
 			}
 		]
 		callback
