@@ -121,6 +121,19 @@ query = (callback) ->
 					date: $first: "$date"
 					cards: $sum: 1
 					eocs: $first: "$eocs"
+					chapters: $addToSet: "$_id.chapter"
+			}
+			{
+				$unwind: "$chapters"
+			}
+			{
+				$group:
+					_id: "$_id"
+					date: $first: "$date"
+					cards: $first: "$cards"
+					eocs: $first: "$eocs"
+					chapters: $sum: 1
+
 			}
 			{
 				$group:
@@ -128,12 +141,14 @@ query = (callback) ->
 					users: $sum: 1
 					cards: $sum: "$cards"
 					eocs: $sum: "$eocs"
+					chapters: $sum: "$chapters"
 			}
 			{
 				$group:
 					_id: "$_id.date"
 					users: $sum: "$users"
 					cards: $sum: "$cards"
+					chapters: $sum: "$chapters"
 					eocs: $sum: "$eocs"
 			}
 		]
