@@ -1,0 +1,2 @@
+find index-view/ -name "*.ls" -exec lsc -c {} \;
+find index-view/ -name "*.styl" -exec stylus {} \;
