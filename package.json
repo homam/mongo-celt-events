@@ -4,7 +4,7 @@
   "description": "",
   "main": "query.js",
   "dependencies": {
-    "async-ls": "0.0.1",
+    "async-ls": "0.0.2",
     "body-parser": "^1.4.3",
     "ejs": "^1.0.0",
     "express": "^4.6.0",

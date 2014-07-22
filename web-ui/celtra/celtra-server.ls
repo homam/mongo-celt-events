@@ -16,7 +16,7 @@ db = require("mongojs").connect \172.30.0.160:27017/Celtra-events, [\reducedEven
 
 # start the http server: lsc server.ls --port=3002
 {port} = (process.argv.slice(2) |> require \minimist)
-port = port or 3002p
+port = port or 3002
 
 
 app = express!
@@ -25,8 +25,8 @@ app.set \port, port
 app.set \views, __dirname + \/
 app.engine \.html, (require \ejs).__express
 app.set 'view engine', \ejs
-app.use \/libs, express.static \public/libs
-app.use \/graphs, express.static \public/graphs
+app.use \/libs, express.static \../public/libs
+app.use \/graphs, express.static \../public/graphs
 
 
 
