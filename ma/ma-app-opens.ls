@@ -8,49 +8,80 @@ to-time = 10*one-day
 
 now = new Date! .get-time!
 
+# last-day = new Date! .get-time!
+# last-day := (last-day/one-day)-((last-day/one-day)%1)
+
+# first-day = last-day - 7
+
+# now = new Date! .get-time!
 
 (err, res) <- db.IOSEvents.aggregate do
 	[
 		{
 			$match:
 				"device.adId": $exists: 1
-				#sessionNumber: $exists: 1
-				#subSessionNumber: $exists: 1
 				timeDelta: $gte:from-time, $lte: to-time
 		}
 		{
 			$project:
 				adId: "$device.name"
-				#session: $add: [$multiply: ["$sessionNumber", 1000], "$subSessionNumber"]
 				timeDelta: 1
-				date: $subtract: [{$divide: ["$timeDelta", one-day]}, {$mod: [{$divide: ["$timeDelta", one-day]}, 1]}]
-				# time passed since installation
-				idate: $subtract: [now, $subtract: ["$serverTime", "$timeDelta"]]
+
+				# days passed since installation
+				daysAfterInstallation: $subtract: [{$divide: ["$timeDelta", one-day]}, {$mod: [{$divide: ["$timeDelta", one-day]}, 1]}]
+				
+
+				eventDate: $subtract: ["$serverTime", "$timeDelta"]
 		}
 		{
 			$project:
 				adId: 1
-				date: 1
+				daysAfterInstallation: 1
+				installationDate: $subtract: ["$eventDate", "$daysAfterInstallation"]
+
 				# number of days passed since installation
-				idate: $subtract: [{$divide: ["$idate", one-day]}, {$mod: [{$divide: ["$idate", one-day]}, 1]}]
+				# eventDate: $subtract: [{$divide: ["$eventDate", one-day]}, {$mod: [{$divide: ["$eventDate", one-day]}, 1]}]
+		}
+		{
+			$project:
+				adId: 1
+				daysAfterInstallation: 1
+				installationDate: $subtract: [{$divide: ["$installationDate", one-day]}, {$mod: [{$divide: ["$installationDate", one-day]}, 1]}]
 		}
 		{
 			$group:
 				_id: 
-					adId: "$adId"
-					idate: "$idate" 
-					date: "$date"
+					daysAfterInstallation: "$daysAfterInstallation"
+					installationDate: "$installationDate"
+				users: $addToSet: "$adId"
+		}
+		{
+			$unwind: "$users"
 		}
 		{
 			$group:
 				_id: 
-					idate: "$_id.idate"
-					date: "$_id.date"
-				opened: $sum: 1
+					daysAfterInstallation: "$_id.daysAfterInstallation"
+					installationDate: "$_id.installationDate"
+				users: $sum: 1
 		}
+		# {
+		# 	$group:
+		# 		_id: 
+		# 			adId: "$adId"
+		# 			eventDate: "$eventDate" 
+		# 			daysAfterInstallation: "$daysAfterInstallation"
+		# }
+		# {
+		# 	$group:
+		# 		_id: 
+		# 			eventDate: "$_id.eventDate"
+		# 			daysAfterInstallation: "$_id.daysAfterInstallation"
+		# 		opened: $sum: 1
+		# }
 	]
 
 
 console.log err
-console.log <| res |> sort-by -> it._id.date*1000 + it._id.idate
+console.log <| res |> sort-by -> it._id.installationDate*1000+it._id.daysAfterInstallation
 db.close!
