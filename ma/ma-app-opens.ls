@@ -1,4 +1,7 @@
-{map, sort, sort-by, mean, filter, first, group-by, flatten, foldl} = require \prelude-ls
+# The ratio of users that have been using the app on their j_th day after installation.
+
+
+{map, sort, sort-by, mean, filter, first, group-by, concat-map, foldl} = require \prelude-ls
 db = require \./config .connect!
 
 one-hour = 1000*60*60
@@ -81,8 +84,8 @@ res = res |> sort-by (._id) |> map (-> {day:it._id} <<< (values: it.values |> so
 
 console.log <| [0 to 10] |> map (j) ->
 		[base, users] = res 
-			|> filter (({day, values})-> day <= today - j) 
-			|> map (.values) |> flatten 
+			|> filter (({day, values}) -> day <= today - j) 
+			|> concat-map (.values)
 			|> foldl (([base, usage], {daysAfterInstallation, users}) -> 
 				[base + if daysAfterInstallation == 0 then users else 0, usage + if daysAfterInstallation == j then users else 0] ), [0, 0]
 		{day: j, base, users, ratio: users/base}
