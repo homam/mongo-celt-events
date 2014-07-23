@@ -13,13 +13,6 @@ from-time = first-day * one-day
 to-time = today * one-day + one-day
 
 
-# last-day = new Date! .get-time!
-# last-day := (last-day/one-day)-((last-day/one-day)%1)
-
-# first-day = last-day - 7
-
-# now = new Date! .get-time!
-
 (err, res) <- db.IOSEvents.aggregate do
 	[
 		{
@@ -27,7 +20,7 @@ to-time = today * one-day + one-day
 				"device.adId": $exists: 1
 				timeDelta: $exists: 1
 				serverTime: $gte: from-time, $lte: to-time
-				country: {$exists: 1, $ne: 'AE'}
+				country: {$exists: 1, $in: ['CA', 'IE']}
 		}
 		{
 			$project:
@@ -37,7 +30,6 @@ to-time = today * one-day + one-day
 				# days passed since installation
 				daysAfterInstallation: $subtract: [$divide: ["$timeDelta", one-day], {$mod: [$divide: ["$timeDelta", one-day], 1]}]
 				
-
 				eventDate: $subtract: ["$serverTime", "$timeDelta"]
 		}
 		{
@@ -45,9 +37,6 @@ to-time = today * one-day + one-day
 				adId: 1
 				daysAfterInstallation: 1
 				installationDate: $subtract: ["$eventDate", "$daysAfterInstallation"]
-
-				# number of days passed since installation
-				# eventDate: $subtract: [{$divide: ["$eventDate", one-day]}, {$mod: [{$divide: ["$eventDate", one-day]}, 1]}]
 		}
 		{
 			$project:
@@ -71,6 +60,7 @@ to-time = today * one-day + one-day
 					daysAfterInstallation: "$_id.daysAfterInstallation"
 					installationDate: "$_id.installationDate"
 				users: $sum: 1
+				#indies: $push: "$users"
 		}
 		{
 			$group:
@@ -79,25 +69,13 @@ to-time = today * one-day + one-day
 					$push: 
 						daysAfterInstallation: "$_id.daysAfterInstallation"
 						users: "$users"
+						#indies: "$indies"
 		}
-		# {
-		# 	$group:
-		# 		_id: 
-		# 			adId: "$adId"
-		# 			eventDate: "$eventDate" 
-		# 			daysAfterInstallation: "$daysAfterInstallation"
-		# }
-		# {
-		# 	$group:
-		# 		_id: 
-		# 			eventDate: "$_id.eventDate"
-		# 			daysAfterInstallation: "$_id.daysAfterInstallation"
-		# 		opened: $sum: 1
-		# }
 	]
 
 
-console.log err
+console.log err if !!err
+
 res = res |> sort-by (._id) |> map (-> {day:it._id} <<< (values: it.values |> sort-by (.daysAfterInstallation)) )
 
 
@@ -108,11 +86,5 @@ console.log <| [0 to 10] |> map (j) ->
 			|> foldl (([base, usage], {daysAfterInstallation, users}) -> 
 				[base + if daysAfterInstallation == 0 then users else 0, usage + if daysAfterInstallation == j then users else 0] ), [0, 0]
 		{day: j, base, users, ratio: users/base}
-		#{day: j, base: base, users: users}
 
-db.close!
-return
-
-console.log <| JSON.stringify res, null, 2
-#console.log <| res |> sort-by -> it._id.installationDate*1000+it._id.daysAfterInstallation
 db.close!
