@@ -8,7 +8,7 @@ from-time = 0*one-day
 to-time = 10*one-day
 
 query-from = moment "2014-07-15" .unix! * 1000
-query-to   = moment "2014-07-22" .unix! * 1000
+query-to   = moment "2014-07-24" .unix! * 1000
 
 
 # if the user visits the same Flashcard / EOC twice in the same [session + subSession]
@@ -22,11 +22,12 @@ query = (callback) ->
 					sessionNumber: $exists: 1
 					subSessionNumber: $exists: 1
 					"event.name": "transition"
-					"event.toView.name": $in: ["Flashcard", "EOC"]
+					"event.toView.name": $in: ["Flashcard", "EOC", "Question", "EOQ"]
 					"event.toView.chapterIndex": $exists: 1
 					"event.toView.courseId": $exists: 1
 					timeDelta: $exists: 1
 					serverTime: $gte: query-from, $lte: query-to
+					country: {$exists: 1, $in: ['CA', 'IE']}
 			}
 			{
 				$project:
