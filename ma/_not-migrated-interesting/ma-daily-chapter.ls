@@ -8,7 +8,7 @@ from-time = 0*one-day
 to-time = 10*one-day
 
 query-from = moment "2014-07-15" .unix! * 1000
-query-to   = moment "2014-07-22" .unix! * 1000
+query-to   = moment "2014-07-30" .unix! * 1000
 
 
 # how many unique chapters have been visited every day
@@ -25,6 +25,8 @@ query = (callback) ->
 					"event.toView.courseId": $exists: 1
 					timeDelta: $exists: 1
 					serverTime: $gte: query-from, $lte: query-to
+					country: {$exists: 1, $in: ['CA', 'IE']}
+
 			}
 			{
 				$project:

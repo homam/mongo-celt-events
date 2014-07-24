@@ -1,12 +1,3 @@
-# How many different chapters have been visited per day
-#
-# If the same chapter has been visited N times in different sessions on the same day,
-# this query counts it as N different chapters.
-#
-# But if the same chapter has been visited M times during the same session,
-# this query counts it only one time. 
-# > http://localhost:3002/query/daily-chapters/2014-07-01/2014-08-01
-
 {
 	promises: {
 		promise-monad
@@ -28,7 +19,7 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 				$match:
 					"event.name": "transition"
 					"event.toView.name": "Flashcard"
-					"event.toView.chapterIndex": $exists: 1
+					"event.toView.cardIndex": $exists: 1
 					"event.toView.courseId": $exists: 1
 					timeDelta: $exists: 1
 					serverTime: $gte: query-from, $lte: query-to
@@ -40,9 +31,10 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 					date: $subtract: [{$divide: ["$timeDelta", one-day]}, {$mod: [{$divide: ["$timeDelta", one-day]}, 1]}]
 					installTime: $subtract: ["$serverTime", "$timeDelta"]
 
-					chapter: 
+					card: 
 						ch: "$event.toView.chapterIndex"
 						co: "$event.toView.courseId"
+						ca: "$event.toView.cardIndex"
 			}
 		] ++ ( 
 				if !!sample-from and !!sample-to then
@@ -58,20 +50,20 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 						date: "$date"
 						adId: "$adId"
 					}
-					chapters: $addToSet: "$chapter"
+					cards: $addToSet: "$card"
 			}
 			{
-				$unwind: "$chapters"
+				$unwind: "$cards"
 			}
 			{
 				$group:
 					_id: "$_id"
-					chapters: $sum: 1
+					cards: $sum: 1
 			}
 			{
 				$group: 
 					_id: "$_id.date"
-					chapters: $sum: "$chapters"
+					cards: $sum: "$cards"
 					users: $sum: 1
 			}
 			

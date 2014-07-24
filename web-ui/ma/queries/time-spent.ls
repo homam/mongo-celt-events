@@ -1,22 +1,30 @@
+# Average daily / per session time spent per user per day.
+# > http://localhost:3002/query/time-spent/2014-07-01/2014-08-01/CA,IE/2014-07-01/2014-07-23T12:00:00
+{
+	promises: {
+		promise-monad
+		new-promise
+	}
+} = require \async-ls
 {map, sort, sort-by, mean} = require \prelude-ls
-db = require \./config .connect!
 
 one-hour = 1000*60*60
 one-day =  one-hour*24
-from-time = 0*one-day
-to-time = 10*one-day
 
 
-query = (callback) ->
-	db.IOSEvents.aggregate do
+query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null) ->
+	(success, reject) <- new-promise
+	(err, res) <- db.IOSEvents.aggregate do
 		[
 			{
 				$match:
 					"device.adId": $exists: 1
 					sessionNumber: $exists: 1
 					subSessionNumber: $exists: 1
-					timeDelta: $gte:from-time, $lte: to-time
-					country: {$exists: 1, $in: ['CA', 'IE']}
+
+					timeDelta: $exists: 1
+					serverTime: $gte: query-from, $lte: query-to
+					country: {$exists: 1} <<< if !!countries then $in: countries else {}
 					
 			}
 			{
@@ -25,7 +33,18 @@ query = (callback) ->
 					session: $add: [$multiply: ["$sessionNumber", 1000], "$subSessionNumber"]
 					timeDelta: 1
 					date: $subtract: [{$divide: ["$timeDelta", one-day]}, {$mod: [{$divide: ["$timeDelta", one-day]}, 1]}]
+
+					installTime: $subtract: ["$serverTime", "$timeDelta"]
+
 			}
+		] ++ ( 
+				if !!sample-from and !!sample-to then
+					[
+						$match:
+							installTime: $gte: sample-from, $lte: sample-to
+					] 
+				else []
+		) ++ [
 			{
 				$group: 
 					_id: {
@@ -65,12 +84,10 @@ query = (callback) ->
 					duration: $avg: "$duration"
 			}
 		]
-		callback
 
-(err, res) <- query
-console.log "Error", err if !!err
+	return reject err if !!err
 
-pretty = (/(1000)) >> Math.round
-console.log <| res |> sort-by (._id) |> map ({_id, users, sessions, avgSessionDuration, duration}) -> {day: _id, users, sessions, avgSessionDuration: (pretty avgSessionDuration), avgDailyDuration: (pretty duration) }
-db.close!
-return
+	pretty = (/(1000)) >> Math.round
+	success <| res |> sort-by (._id) |> map ({_id, users, sessions, avgSessionDuration, duration}) -> {day: _id, users, sessions, avgSessionDuration: (pretty avgSessionDuration), avgDailyDuration: (pretty duration) }
+
+module.exports = query

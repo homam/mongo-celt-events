@@ -2,7 +2,7 @@
 
 
 {map, sort, sort-by, mean, filter, first, group-by, concat-map, foldl} = require \prelude-ls
-db = require \./config .connect!
+db = require \./../config .connect!
 
 one-hour = 1000*60*60
 one-day =  one-hour*24

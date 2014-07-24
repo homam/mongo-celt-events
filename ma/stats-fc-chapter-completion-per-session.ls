@@ -8,7 +8,7 @@ from-time = 0*one-day
 to-time = 10*one-day
 
 query-from = moment "2014-07-15" .unix! * 1000
-query-to   = moment "2014-07-24" .unix! * 1000
+query-to   = moment "2014-07-30" .unix! * 1000
 
 
 # if the user visits the same Flashcard / EOC twice in the same [session + subSession]
@@ -32,7 +32,7 @@ query = (callback) ->
 			{
 				$project:
 					adId: "$device.adId"
-					session: $add: [$multiply: ["$sessionNumber", 1000], "$subSessionNumber"]
+					# session: $add: [$multiply: ["$sessionNumber", 1000], "$subSessionNumber"]
 					timeDelta: 1
 					date: $subtract: [{$divide: ["$timeDelta", one-day]}, {$mod: [{$divide: ["$timeDelta", one-day]}, 1]}]
 					course: "$event.toView.courseId"
@@ -44,7 +44,7 @@ query = (callback) ->
 				$group: 
 					_id: {
 						chapter: $add: ["$chapter", $multiply: ["$course", 1000]]
-						session: "$session"
+						# session: "$session"
 						adId: "$adId"
 					}
 					date: $min: "$date"

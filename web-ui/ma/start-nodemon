@@ -1,1 +1,1 @@
-nodemon --exec "lsc server.ls"
+nodemon --exec "lsc server.ls" -e ls

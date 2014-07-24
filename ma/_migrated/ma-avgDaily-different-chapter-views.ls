@@ -1,5 +1,5 @@
 {map, sort, sort-by, mean} = require \prelude-ls
-db = require \./config .connect!
+db = require \./../config .connect!
 
 one-hour = 1000*60*60
 one-day =  one-hour*24
@@ -20,6 +20,7 @@ query = (callback) ->
 					"event.toView.chapterIndex": $exists: 1
 					"event.toView.courseId": $exists: 1
 					timeDelta: $exists: 1
+					country: {$exists: 1, $in: ['CA', 'IE']}
 			}
 			{
 				$project:
