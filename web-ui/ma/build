@@ -3,3 +3,10 @@ find index-view/ -name "*.styl" -exec stylus {} \;
 
 find usage-view/ -name "*.ls" -exec lsc -c {} \;
 find usage-view/ -name "*.styl" -exec stylus {} \;
+
+find popular-view/ -name "*.ls" -exec lsc -c {} \;
+find popular-view/ -name "*.styl" -exec stylus {} \;
+
+find login-view/ -name "*.ls" -exec lsc -c {} \;
+find login-view/ -name "*.styl" -exec stylus {} \;
+
