@@ -25,10 +25,11 @@ app.use body-parser.urlencoded extended: true
 app.set \port, port
 app.set \views, __dirname + \/
 app.engine \.html, (require \ejs).__express
+app.use <| (require \cookie-parser)!
 app.set 'view engine', \ejs
 app.use \/libs, express.static \../public/libs
 app.use \/graphs, express.static \../public/graphs
-
+app.use \/data, express.static \../public/data
 
 
 
@@ -173,18 +174,48 @@ app.get do
 			to-unix-time params.sampleTo
 
 
+app.get do
+	"/query/popular-courses/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?"
+	query-and-result (db, req, res) -> 
+		params = req.params
+		(require \./queries/popular-courses) do
+			db
+			to-unix-time params.durationFrom
+			to-unix-time params.durationTo
+			to-country-array params.countries
+			to-unix-time params.sampleFrom
+			to-unix-time params.sampleTo
 
+
+
+
+app.post do
+	"/login"
+	(req, res) ->
+
+		if "tomato" == req.body.password
+
+			res.cookie 'loggedin', '1', { maxAge: 48*60*60*1000, httpOnly: true }
+			res.redirect (req.get \Referrer .split \backto= .1) or \/
+
+		res.render 'login-view/index.html', {message: "Invalid Password"}
+		res.end!
 
 [
 	[\/, \index]
 	[\/usage, \usage]
+	[\/popular, \popular]
+	[\/login, \login]
 ] |> each ([path, dir]) ->
 
 	app.use "/#dir/scripts/", express.static "#{dir}-view/scripts"
 	app.use "/#dir/styles/", express.static "#{dir}-view/styles"
 	app.get path, (req, res) ->
-		res.render "#{dir}-view/index.html", {title: 'Hello!'}
-		res.end!
+		if "/login" != req.path and "1" != req.cookies?.loggedin
+			res.redirect "/login?backto=#{req.url}"
+		else
+			res.render "#{dir}-view/index.html", {title: 'Hello!'}
+			res.end!
 
 
 

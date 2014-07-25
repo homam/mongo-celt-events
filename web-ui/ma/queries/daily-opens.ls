@@ -8,7 +8,6 @@
 	}
 } = require \async-ls
 {map, sort, sort-by, mean, filter, first, group-by, concat-map, foldl, maximum} = require \prelude-ls
-db = require \./../../../ma/config .connect!
 
 one-hour = 1000*60*60
 one-day =  one-hour*24
@@ -20,7 +19,6 @@ today = now / one-day - ((now / one-day)%1)
 
 query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null) ->
 	(success, reject) <- new-promise
-
 	(err, res) <- db.IOSEvents.aggregate do
 		[
 			{
