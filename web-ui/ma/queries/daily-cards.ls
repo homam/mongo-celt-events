@@ -22,6 +22,7 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 					"event.toView.cardIndex": $exists: 1
 					"event.toView.courseId": $exists: 1
 					timeDelta: $exists: 1
+					
 					serverTime: $gte: query-from, $lte: query-to
 					country: {$exists: 1} <<< if !!countries then $in: countries else {}
 			}

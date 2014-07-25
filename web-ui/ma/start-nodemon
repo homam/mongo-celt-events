@@ -1,1 +1,1 @@
-nodemon --exec "lsc server.ls" -e ls
+nodemon --exec "lsc server.ls" -e ls --ignore "usage-view/"

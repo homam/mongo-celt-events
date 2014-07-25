@@ -9,7 +9,7 @@ express = require \express
 path = require \path
 http = require \http
 body-parser = require \body-parser
-{map, pairs-to-obj, filter} = require \prelude-ls
+{map, pairs-to-obj, filter, each} = require \prelude-ls
 moment = require \moment
 
 config = require \./config
@@ -123,7 +123,7 @@ app.get do
 	"/query/daily-cards/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?"
 	query-and-result (db, req, res) -> 
 		params = req.params
-		(require \./queries/daily-cards) do
+		(require \./queries/daily-cards-flips-chapters-courses) do
 			db
 			to-unix-time params.durationFrom
 			to-unix-time params.durationTo
@@ -133,23 +133,25 @@ app.get do
 
 
 app.get do
-	"/query/app-opens/:durationFrom/:durationTo/:countries?/:days?/:sampleFrom?/:sampleTo?"
+	"/query/daily-time-spent/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?"
 	query-and-result (db, req, res) -> 
 		params = req.params
-		(require \./queries/app-opens) do
+		(require \./queries/daily-time-spent) do
 			db
 			to-unix-time params.durationFrom
 			to-unix-time params.durationTo
 			to-country-array params.countries
-			to-int params.days
 			to-unix-time params.sampleFrom
 			to-unix-time params.sampleTo
+
+
+
 
 app.get do
-	"/query/time-spent/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?"
+	"/query/daily-opens/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?"
 	query-and-result (db, req, res) -> 
 		params = req.params
-		(require \./queries/time-spent) do
+		(require \./queries/daily-opens) do
 			db
 			to-unix-time params.durationFrom
 			to-unix-time params.durationTo
@@ -158,11 +160,31 @@ app.get do
 			to-unix-time params.sampleTo
 
 
-app.use \/index/scripts/, express.static \index-view/scripts
-app.use \/index/styles/, express.static \index-view/styles
-app.get \/, (req, res) ->
-	res.render \index-view/index.html, {title: 'Hello!'}
-	res.end!
+app.get do
+	"/query/daily-depth/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?"
+	query-and-result (db, req, res) -> 
+		params = req.params
+		(require \./queries/daily-depth) do
+			db
+			to-unix-time params.durationFrom
+			to-unix-time params.durationTo
+			to-country-array params.countries
+			to-unix-time params.sampleFrom
+			to-unix-time params.sampleTo
+
+
+
+
+[
+	[\/, \index]
+	[\/usage, \usage]
+] |> each ([path, dir]) ->
+
+	app.use "/#dir/scripts/", express.static "#{dir}-view/scripts"
+	app.use "/#dir/styles/", express.static "#{dir}-view/styles"
+	app.get path, (req, res) ->
+		res.render "#{dir}-view/index.html", {title: 'Hello!'}
+		res.end!
 
 
 
