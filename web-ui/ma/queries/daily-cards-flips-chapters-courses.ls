@@ -13,7 +13,7 @@ one-hour = 1000*60*60
 one-day =  one-hour*24
 
 
-# if the user visits the same Flashcard / EOC twice in the same [session + subSession]
+# if the user visits the same Flashcard / EOC / etc. twice in the same day
 # this query count it as once
 
 query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null) ->
@@ -46,6 +46,7 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 					fromSide: "$event.fromView.side"
 					fromCard: "$event.fromView.cardIndex"
 					view: "$event.toView.name"
+					questionIndex: "$event.toView.questionIndex"
 			}
 		] ++ ( 
 				if !!sample-from and !!sample-to then
@@ -71,6 +72,10 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 					backwards: $sum: $cond: [$and: [{$eq: ["$toSide", "answer"]}, {$eq: ["$fromSide", "question"]}, {$gt: ["$fromCard", "$toCard"]}], 1, 0]
 
 					eocs: $sum: $cond: [$and: [{$eq: ["$view", "EOC"]}, {$eq: ["$fromSide", "answer"]}], 1, 0]
+					quizzes: $sum: $cond: [$and: [{$eq: ["$view", "Question"]}, {$eq: ["$questionIndex", 1]}], 1, 0]
+					eoqs: $sum: $cond: [{$eq: ["$view", "EOQ"]}, 1, 0]
+
+					# chapters: $sum: $cond: [$and: [{$eq: ["$view", "Flashcard"]}, {$eq: ["$toCard", 1]}], 1, 0]
 			}
 			{
 				$group:
@@ -85,6 +90,9 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 					forwards: $sum: "$forwards"
 					backwards: $sum: "$backwards"
 					eocs: $sum: "$eocs"
+					quizzes: $sum: "$quizzes"
+					eoqs: $sum: "$eoqs"
+					#chapters: $sum: $cond: [$gt: ["$chapters", 0], 1, 0]
 					chapters: $sum: 1
 			}
 			{
@@ -100,6 +108,8 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 					backwards: $sum: "$backwards"
 					chapters: $sum: "$chapters"
 					eocs: $sum: "$eocs"
+					quizzes: $sum: "$quizzes"
+					eoqs: $sum: "$eoqs"
 					courses: $sum: 1
 			}
 			{
@@ -114,6 +124,10 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 					chapters: $sum: "$chapters"
 					courses: $sum: "$courses"
 					eocs: $sum: "$eocs"
+					quizzes: $sum: "$quizzes"
+					eoqs: $sum: "$eoqs"
+					usersStartedQuiz: $sum: $cond: [{$gt: ["$quizzes", 0]}, 1, 0]
+					usersEndedQuiz: $sum: $cond: [{$gt: ["$eoqs", 0]}, 1, 0]
 					users: $sum: 1
 			}
 		]

@@ -30,6 +30,8 @@ fresh-rows = ->
 		[\chapters, 'Chapters']
 		[\eoc, 'Chapter Completion']
 		[\courses, 'Courses']
+		[\usersStartedQuiz, 'Started any Quiz']
+		[\completedQuizzes, 'Quiz Completion']
 		[\rated, 'Rated']
 		[\remind, 'Remind me later']
 		[\never, 'Never ask again']
@@ -130,6 +132,13 @@ query = ->
 
 	row = data-rows |> find (.0 == \eoc) 
 	row.2 = [0 to how-many-days] |> map (d) -> results |> find (._id == d) |> (-> if !!it then format-p0 it.eocs/it.chapters else "-")
+
+	row = data-rows |> find (.0 == \usersStartedQuiz) 
+	row.2 = [0 to how-many-days] |> map (d) -> results |> find (._id == d) |> (-> if !!it then format-p0 it.usersStartedQuiz/users[it._id] else "-")
+
+	row = data-rows |> find (.0 == \completedQuizzes) 
+	row.2 = [0 to how-many-days] |> map (d) -> results |> find (._id == d) |> (-> if !!it and !!it.quizzes then format-p0 it.eoqs/it.quizzes else "-")
+
 
 	update!
 
