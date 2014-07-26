@@ -1,0 +1,71 @@
+<html>
+	<head>
+		<title>Flips Histogram</title>
+		<meta name="viewport" content="width=device-width, user-scalable=yes">
+
+		<script src="/libs/prelude-browser.js"></script>
+		<script src="/libs/d3.js"></script>
+		<script src="/libs/promises-browser-all.js"></script>
+		<script src="/libs/moment.js"></script>
+		<script src="/graphs/table.js"></script>
+
+		<link rel="Stylesheet" type="text/css" href="/usageh/styles/main-controls.css" />
+
+		<style type="text/css">
+
+		</style>
+	</head>
+	<body>
+		<h1>Flips Histogram</h1>
+		<form id="main-controls">
+			<div class="controls">
+				<div id="main-controls-sample">
+					<h5>Sample:</h5>
+					<div class="controls">
+						<div>
+							<label for="sampleFrom">From:</label> <input type="date" name="sampleFrom">
+						</div>
+						<div>
+							<label for="sampleTo">To:</label> <input type="date" name="sampleTo">
+						</div>
+					</div>
+				</div>
+				<div id="main-controls-query">
+					<h5>Query:</h5>
+					<div class="controls">
+						<div>
+							<label for="queryFrom">From:</label> <input type="date" name="queryFrom">
+						</div>
+						<div>
+							<label for="queryTo">To:</label> <input type="date" name="queryTo">
+						</div>
+					</div>
+				</div>
+				<div>
+					<select class="title" name="histogramType">
+						<option value="cumulative">
+							Users that had a chance to use the app for at least # days
+						</option>
+						<option value="onday">
+							Users that used the app on the # day after installation
+						</option>
+					</select>
+					<div class="controls">
+						<select name="howManyDays"></select>
+					</div>
+				</div>
+			</div>
+			<button type="submit">
+				Query
+			</button>
+		</form>
+		<svg id="histogram" width="1000" height="500">
+
+		</svg>
+		
+
+		<script src="/usageh/scripts/index.js"></script>
+
+		<% include ../footer.html %>   
+	</body>
+</html>

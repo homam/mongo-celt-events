@@ -187,6 +187,62 @@ app.get do
 			to-unix-time params.sampleTo
 
 
+app.get do
+	"/query/histogram-flips-cumulative/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:howManyDays?"
+	query-and-result (db, req, res) -> 
+		params = req.params
+		(require \./queries/histogram-flips-cumulative) do
+			db
+			to-unix-time params.durationFrom
+			to-unix-time params.durationTo
+			to-country-array params.countries
+			to-unix-time params.sampleFrom
+			to-unix-time params.sampleTo
+			to-int params.howManyDays
+
+app.get do
+	"/query/histogram-timespent-cumulative/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:howManyDays?"
+	query-and-result (db, req, res) -> 
+		params = req.params
+		(require \./queries/histogram-timespent-cumulative) do
+			db
+			to-unix-time params.durationFrom
+			to-unix-time params.durationTo
+			to-country-array params.countries
+			to-unix-time params.sampleFrom
+			to-unix-time params.sampleTo
+			to-int params.howManyDays
+
+
+app.get do
+	"/query/histogram-timespent-onday/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:howManyDays?"
+	query-and-result (db, req, res) -> 
+		params = req.params
+		(require \./queries/histogram-timespent-onday) do
+			db
+			to-unix-time params.durationFrom
+			to-unix-time params.durationTo
+			to-country-array params.countries
+			to-unix-time params.sampleFrom
+			to-unix-time params.sampleTo
+			to-int params.howManyDays
+
+
+app.get do
+	"/query/histogram-flips-onday/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:howManyDays?"
+	query-and-result (db, req, res) -> 
+		params = req.params
+		(require \./queries/histogram-flips-onday) do
+			db
+			to-unix-time params.durationFrom
+			to-unix-time params.durationTo
+			to-country-array params.countries
+			to-unix-time params.sampleFrom
+			to-unix-time params.sampleTo
+			to-int params.howManyDays
+
+
+
 
 
 app.post do
@@ -206,6 +262,8 @@ app.post do
 	[\/usage, \usage]
 	[\/popular, \popular]
 	[\/login, \login]
+	[\/usageh, \usageh]
+	[\/timeh, \timeh]
 ] |> each ([path, dir]) ->
 
 	app.use "/#dir/scripts/", express.static "#{dir}-view/scripts"
