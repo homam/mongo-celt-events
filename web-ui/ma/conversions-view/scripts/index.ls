@@ -31,6 +31,9 @@ document.getElementById \main-controls .add-event-listener do
 
 $table = d3.select \table#main
 
+print-conversion-data = (data)->
+	if data.visits == 0 then "-" else "#{data.installs} / #{data.visits} = #{format-p1(data.conversion)}"
+
 update = ->
 	
 	$table.select \thead .select \tr .select-all \th
@@ -52,7 +55,9 @@ update = ->
 			..data (-> it.days)
 				..enter!
 					.append \td
-				..text (-> "#{it.installs} / #{it.visits} = #{format-p1(it.conversion)}")
+				..style "text-align", (-> if it.visits == 0 then "center" else "right")				
+				..text print-conversion-data
+				..attr "title", (.source)
 		..exit!.remove!
 
 update!
@@ -69,7 +74,7 @@ query = ->
 	[queryFrom, queryTo] = <[queryFrom queryTo]> |> map input-date >> (.valueAsDate.getTime!)
 	
 	data-cols := ["Sources"] ++ ([queryFrom to queryTo by 86400000] |> map format-t)
-	data-rows := results
+	data-rows := results |> map (e)-> e <<< days: (e.days |> map -> it <<< source: e.source)
 
 	update!
 
