@@ -23,7 +23,8 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 			{
 				$match:
 					"event.name": "transition"
-					"event.toView.name": "Flashcard" # , "EOC", "Question", "EOQ"]
+					# "event.toView.name": "Flashcard" # , "EOC", "Question", "EOQ"]
+					"event.toView.name": $in: ["Flashcard" , "EOC", "Question", "EOQ"]
 					"event.toView.chapterIndex": $exists: 1
 					"event.toView.courseId": $exists: 1
 					timeDelta: $exists: 1
@@ -41,7 +42,9 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 					chapter: "$event.toView.chapterIndex" # $add: ["$event.toView.chapterIndex", $multiply: ["$event.toView.courseId", 1000]]
 					card: "$event.toView.cardIndex"
 					toSide: "$event.toView.side"
+					toCard: "$event.toView.cardIndex"
 					fromSide: "$event.fromView.side"
+					fromCard: "$event.fromView.cardIndex"
 					view: "$event.toView.name"
 			}
 		] ++ ( 
@@ -61,7 +64,13 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 						chapter: "$chapter"
 
 					cards: $sum: $cond: [{$eq: ["$toSide", "question"]}, 1, 0]
-					flips: $sum: $cond: [$and: [{$eq: ["$toSide", "answer"]}, {$eq: ["$fromSide", "question"]}], 1, 0]
+					flips: $sum: $cond: [$and: [{$eq: ["$toSide", "answer"]}, {$eq: ["$fromSide", "question"]}, {$eq: ["$fromCard", "$toCard"]}], 1, 0]
+					backFlips: $sum: $cond: [$and: [{$eq: ["$toSide", "question"]}, {$eq: ["$fromSide", "answer"]}, {$eq: ["$fromCard", "$toCard"]}], 1, 0]
+					
+					forwards: $sum: $cond: [$and: [{$eq: ["$toSide", "question"]}, {$eq: ["$fromSide", "answer"]}, {$lt: ["$fromCard", "$toCard"]}], 1, 0]
+					backwards: $sum: $cond: [$and: [{$eq: ["$toSide", "answer"]}, {$eq: ["$fromSide", "question"]}, {$gt: ["$fromCard", "$toCard"]}], 1, 0]
+
+					eocs: $sum: $cond: [$and: [{$eq: ["$view", "EOC"]}, {$eq: ["$fromSide", "answer"]}], 1, 0]
 			}
 			{
 				$group:
@@ -72,6 +81,10 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 
 					cards: $sum: "$cards"
 					flips: $sum: "$flips"
+					backFlips: $sum: "$backFlips"
+					forwards: $sum: "$forwards"
+					backwards: $sum: "$backwards"
+					eocs: $sum: "$eocs"
 					chapters: $sum: 1
 			}
 			{
@@ -82,7 +95,11 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 
 					cards: $sum: "$cards"
 					flips: $sum: "$flips"
+					backFlips: $sum: "$backFlips"
+					forwards: $sum: "$forwards"
+					backwards: $sum: "$backwards"
 					chapters: $sum: "$chapters"
+					eocs: $sum: "$eocs"
 					courses: $sum: 1
 			}
 			{
@@ -91,8 +108,12 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 
 					cards: $sum: "$cards"
 					flips: $sum: "$flips"
+					backFlips: $sum: "$backFlips"
+					forwards: $sum: "$forwards"
+					backwards: $sum: "$backwards"
 					chapters: $sum: "$chapters"
 					courses: $sum: "$courses"
+					eocs: $sum: "$eocs"
 					users: $sum: 1
 			}
 		]

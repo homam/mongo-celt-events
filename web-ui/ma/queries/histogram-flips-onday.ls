@@ -45,7 +45,9 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 					chapter: "$event.toView.chapterIndex" # $add: ["$event.toView.chapterIndex", $multiply: ["$event.toView.courseId", 1000]]
 					card: "$event.toView.cardIndex"
 					toSide: "$event.toView.side"
+					toCard: "$event.toView.cardIndex"
 					fromSide: "$event.fromView.side"
+					fromCard: "$event.fromView.cardIndex"
 					view: "$event.toView.name"
 
 					installTime: $subtract: ["$serverTime", "$timeDelta"]
@@ -65,7 +67,7 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 						course: "$course"
 						chapter: "$chapter"
 
-					flips: $sum: $cond: [$and: [{$eq: ["$toSide", "answer"]}, {$eq: ["$fromSide", "question"]}], 1, 0]
+					flips: $sum: $cond: [$and: [{$eq: ["$toSide", "answer"]}, {$eq: ["$fromSide", "question"]}, {$eq: ["$fromCard", "$toCard"]}], 1, 0]
 			}
 			# {
 			# 	$group:

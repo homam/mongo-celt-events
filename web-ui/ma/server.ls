@@ -90,6 +90,7 @@ app.get do
 	* \daily-opens, \./queries/daily-opens
 	* \daily-ratings, \./queries/daily-ratings
 	* \daily-depth, \./queries/daily-depth
+	* \daily-eocs, \./queries/daily-eocs
 	* \popular-courses, \./queries/popular-courses
 
 ] |> each ([req-path, module-path]) ->

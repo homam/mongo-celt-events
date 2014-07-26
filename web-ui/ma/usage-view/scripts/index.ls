@@ -25,8 +25,10 @@ fresh-rows = ->
 		[\sessions, 'Sessions']
 		[\time, 'Time Spent']
 		[\flips, 'Flips']
+		[\backFlips, 'Back Flips']
 		# [\cards, 'Cards']
 		[\chapters, 'Chapters']
+		[\eoc, 'Chapter Completion']
 		[\courses, 'Courses']
 		[\rated, 'Rated']
 		[\remind, 'Remind me later']
@@ -75,6 +77,7 @@ update = ->
 
 update!
 
+format-p0 = d3.format \%
 format-p1 = d3.format \.1%
 format-d1 = d3.format ',.1f'
 format-d0 = d3.format ',f'
@@ -117,13 +120,16 @@ query = ->
 	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-cards/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}"
 
 	row = data-rows |> find (.0 == \interacted) 
-	row.2 = [0 to how-many-days] |> map (d) -> results |> find (._id == d) |> (-> if !!it then format-p1 it.users/users[it._id] else "-")
+	row.2 = [0 to how-many-days] |> map (d) -> results |> find (._id == d) |> (-> if !!it then format-p0 it.users/users[it._id] else "-")
 
 
-	<[flips chapters courses]> |> each (field) ->
+	<[flips backFlips chapters courses]> |> each (field) ->
 		row = data-rows |> find (.0 == field) 
 		row.2 = [0 to how-many-days] |> map (d) -> results |> find (._id == d) |> (-> if !!it then format-d1 it[field]/it.users else "-")
 
+
+	row = data-rows |> find (.0 == \eoc) 
+	row.2 = [0 to how-many-days] |> map (d) -> results |> find (._id == d) |> (-> if !!it then format-p0 it.eocs/it.chapters else "-")
 
 	update!
 
@@ -134,9 +140,7 @@ query = ->
 		row = data-rows |> find (.0 == field) 
 		row.2 = [0 to how-many-days] |> map (d) -> results |> find (._id == d) |> (-> if !!it then format-d0 it[field] else "-")
 
-	console.log error
 
 	update!
-
 
 query!
