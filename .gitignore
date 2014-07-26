@@ -1,3 +1,4 @@
 node_modules/
 *.js
 mongo-celt-events.sublime-workspace
+.DS_Store
