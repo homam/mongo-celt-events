@@ -25,9 +25,12 @@ fresh-rows = ->
 		[\sessions, 'Sessions']
 		[\time, 'Time Spent']
 		[\flips, 'Flips']
-		[\cards, 'Cards']
+		# [\cards, 'Cards']
 		[\chapters, 'Chapters']
 		[\courses, 'Courses']
+		[\rated, 'Rated']
+		[\remind, 'Remind me later']
+		[\never, 'Never ask again']
 	]
 	data-rows = data-rows |> map (-> it ++ [["..." for _ in [0 to how-many-days]]])
 
@@ -74,6 +77,7 @@ update!
 
 format-p1 = d3.format \.1%
 format-d1 = d3.format ',.1f'
+format-d0 = d3.format ',f'
 
 query = ->
 
@@ -116,16 +120,23 @@ query = ->
 	row.2 = [0 to how-many-days] |> map (d) -> results |> find (._id == d) |> (-> if !!it then format-p1 it.users/users[it._id] else "-")
 
 
-	<[flips cards chapters courses]> |> each (field) ->
+	<[flips chapters courses]> |> each (field) ->
 		row = data-rows |> find (.0 == field) 
 		row.2 = [0 to how-many-days] |> map (d) -> results |> find (._id == d) |> (-> if !!it then format-d1 it[field]/it.users else "-")
 
 
-
 	update!
+
+
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-ratings/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}"
+
+	<[rated never remind]> |> each (field) ->
+		row = data-rows |> find (.0 == field) 
+		row.2 = [0 to how-many-days] |> map (d) -> results |> find (._id == d) |> (-> if !!it then format-d0 it[field] else "-")
 
 	console.log error
 
+	update!
 
 
 query!

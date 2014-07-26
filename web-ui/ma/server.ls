@@ -162,6 +162,19 @@ app.get do
 
 
 app.get do
+	"/query/daily-ratings/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?"
+	query-and-result (db, req, res) -> 
+		params = req.params
+		(require \./queries/daily-ratings) do
+			db
+			to-unix-time params.durationFrom
+			to-unix-time params.durationTo
+			to-country-array params.countries
+			to-unix-time params.sampleFrom
+			to-unix-time params.sampleTo
+
+
+app.get do
 	"/query/daily-depth/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?"
 	query-and-result (db, req, res) -> 
 		params = req.params
