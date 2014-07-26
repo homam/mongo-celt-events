@@ -71,7 +71,7 @@ check-empty = (s) -->
 
 to-unix-time = (s) ->
 	return null if check-empty s
-	moment s .unix! * 1000
+	moment s .unix! * 1000	
 
 to-int = (s) ->
 	return null if check-empty s

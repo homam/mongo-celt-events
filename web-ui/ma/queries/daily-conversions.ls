@@ -13,6 +13,7 @@ one-day =  one-hour*24
 fill-in-the-gaps = (query-from, query-to, days) -->
 
 	empty-list = [query-from to query-to by 86400000]  |> map -> {day: (it - it % 86400000) / 86400000 visits: 0, installs: 0, conversion: 0}
+	console.log query-from
 
 	days |> fold ((memo, value)-> 
 		index = empty-list |> find-index -> it.day == value.day
@@ -24,6 +25,9 @@ fill-in-the-gaps = (query-from, query-to, days) -->
 query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null) ->	
 	(success, reject) <- new-promise
 	
+	query-from -= (new Date()).getTimezoneOffset() * 60000
+	query-to -= (new Date()).getTimezoneOffset() * 60000
+
 	db.IOSAdVisits.aggregate do
 		[
 			{
