@@ -1,0 +1,39 @@
+@import 'nib'
+
+#main-controls
+	h5, .title
+		margin: 1em 0 0.7em 0
+		padding: 0
+		font-weight: bold
+	.controls
+		display: flex
+		flex-wrap: wrap
+		& > *
+			flex-grow: 1
+
+		h5 
+			text-align: left
+		.controls
+			display: flex
+			flex-wrap: wrap
+			& > div
+				flex-grow: 0
+				padding-right: 0.5em
+
+body
+	font-family: Menlo, monospace
+
+ 
+
+.bar rect
+	fill: steelblue
+	shape-rendering: crispEdges
+
+.bar text
+	fill: #fff
+
+
+.axis path, .axis line
+	fill: none
+	stroke: #000
+	shape-rendering: crispEdges

@@ -1,3 +1,5 @@
+# bad practice using unwind, but apparenlty right data
+
 {map, sort, sort-by, mean} = require \prelude-ls
 moment = require \moment
 db = require \./config .connect!

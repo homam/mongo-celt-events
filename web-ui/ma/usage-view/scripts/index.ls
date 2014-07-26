@@ -9,10 +9,10 @@ input-date = (name) ->
 	d3.select '#main-controls [name=' + name + ']' .node!
 
 input-date \sampleFrom .value = "2014-07-20"
-input-date \sampleTo .value = moment!.add \days, 1 .format \YYYY-MM-DD\
+input-date \sampleTo .value = moment!.add \days, 1 .format \YYYY-MM-DD
 
 input-date \queryFrom .value = "2014-07-20"
-input-date \queryTo .value = moment!.add \days, 1 .format \YYYY-MM-DD\
+input-date \queryTo .value = moment!.add \days, 1 .format \YYYY-MM-DD
 
 
 how-many-days = 30
