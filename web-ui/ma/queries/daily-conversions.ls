@@ -4,20 +4,31 @@
 		new-promise
 	}
 } = require \async-ls
-{map, sort, sort-by, mean} = require \prelude-ls
+{map, sort, sort-by, mean, fold, find-index} = require \prelude-ls
 
 
 one-hour = 1000*60*60
 one-day =  one-hour*24
 
+fill-in-the-gaps = (query-from, query-to, days) -->
+
+	empty-list = [query-from to query-to by 86400000]  |> map -> {day: (it - it % 86400000) / 86400000 visits: 0, installs: 0, conversion: 0}
+
+	days |> fold ((memo, value)-> 
+		index = empty-list |> find-index -> it.day == value.day
+		memo[index] = value if !!index
+		memo
+	),  empty-list
+	
 
 query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null) ->	
 	(success, reject) <- new-promise
+	
 	db.IOSAdVisits.aggregate do
 		[
 			{
 				$match:	
-					country: $in: ["CA", "IE"]
+					country: $in: countries
 					creationTimestamp: $gte: query-from, $lte: query-to
 			}						
 			{
@@ -42,10 +53,10 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 						visits: "$visits", 
 						installs: "$installs", 
 						conversion: $divide: ["$installs", "$visits"]
-			}
+			}			
 		]
 		(err, res) ->
 			return reject err if !!err
-			success <| res
+			success <| res |> map ({_id, days}) -> {source: _id.source, days: days |> sort-by (.day) |> (fill-in-the-gaps query-from, query-to)}
 
 module.exports = query
