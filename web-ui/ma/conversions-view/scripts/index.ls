@@ -68,7 +68,6 @@ query = ->
 
 	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
 
-
 	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-conversions/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}"
 
 	[queryFrom, queryTo] = <[queryFrom queryTo]> |> map input-date >> (.valueAsDate.getTime!)
