@@ -38,32 +38,8 @@ write-error = (res, error) ->
 	res.status-code = 500
 	res.write "Error!\n" + error
 
-# aggregate = require \./../queries/banners-summary
-# aggregate-response = (aggregation, req, res) -->
-# 	(error, results) <- to-callback aggregation
-# 	return write-error res, error if !!error
-# 	res.set-header \content-type, \application/json
-# 	res.write <| JSON.stringify results, null, 4
-# 	res.end!
 
-# app.get "/query/banners", aggregate-response (aggregate db, {
-# 		_id: "$creativeId"
-# 		banner: $first: "$banner"
-# })
-
-# app.get "/q/:keyvalues/:grouping", (req, res) -> 
-# 	filtering-obj = if '_' == req.params.keyvalues then {} else req.params.keyvalues.split \, |> (map -> it.split \:) |> pairs-to-obj
-# 	aggregate-response (aggregate db, {
-# 		_id: "$#{req.params.grouping}"
-# 	}, filtering-obj), req, res
-
-# app.get "/query/banners/:creativeId/:grouping", (req, res) -> aggregate-response (aggregate db, {
-# 	_id: "$#{req.params.grouping}"
-# },{creativeId: req.params.creativeId}), req, res
-
-# app.get "/query/banners/:creativeId/:filteringkey/:filteringvalue/:grouping", (req, res) -> aggregate-response (aggregate db, {
-# 	_id: "$#{req.params.grouping}"
-# },{creativeId: req.params.creativeId, "#{req.params.filteringkey}": "#{req.params.filteringvalue}"}), req, res
+# -- Queries -- 
 
 check-empty = (s) -->
 	return ('undefined' == (typeof s) or !s or s == '-')
@@ -107,165 +83,54 @@ app.get do
 	query-and-result (db, req, res) -> (require \./queries/latest-users) db, parseInt req.query[\limit]
 
 
-app.get do
-	"/query/daily-chapters/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?"
-	query-and-result (db, req, res) -> 
-		params = req.params
-		(require \./queries/daily-chapters) do
-			db
-			to-unix-time params.durationFrom
-			to-unix-time params.durationTo
-			to-country-array params.countries
-			to-unix-time params.sampleFrom
-			to-unix-time params.sampleTo
+[
+	* \daily-chapters, \./queries/daily-chapters
+	* \daily-cards, \./queries/daily-cards-flips-chapters-courses
+	* \daily-time-spent, \./queries/daily-time-spent
+	* \daily-opens, \./queries/daily-opens
+	* \daily-ratings, \./queries/daily-ratings
+	* \daily-depth, \./queries/daily-depth
+	* \popular-courses, \./queries/popular-courses
+
+] |> each ([req-path, module-path]) ->
+	app.get do
+		"/query/#req-path/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?"
+		query-and-result (db, req, res) -> 
+			params = req.params
+			(require module-path) do
+				db
+				to-unix-time params.durationFrom
+				to-unix-time params.durationTo
+				to-country-array params.countries
+				to-unix-time params.sampleFrom
+				to-unix-time params.sampleTo
 
 
-app.get do
-	"/query/daily-cards/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?"
-	query-and-result (db, req, res) -> 
-		params = req.params
-		(require \./queries/daily-cards-flips-chapters-courses) do
-			db
-			to-unix-time params.durationFrom
-			to-unix-time params.durationTo
-			to-country-array params.countries
-			to-unix-time params.sampleFrom
-			to-unix-time params.sampleTo
+[
+	* \histogram-flips-cumulative, \./queries/histogram-flips-cumulative
+	* \histogram-timespent-cumulative, \./queries/histogram-timespent-cumulative
+	* \histogram-timespent-onday, \./queries/histogram-timespent-onday
+	* \histogram-flips-onday, \./queries/histogram-flips-onday
+	* \daily-conversions, \./queries/daily-conversions
 
-
-app.get do
-	"/query/daily-time-spent/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?"
-	query-and-result (db, req, res) -> 
-		params = req.params
-		(require \./queries/daily-time-spent) do
-			db
-			to-unix-time params.durationFrom
-			to-unix-time params.durationTo
-			to-country-array params.countries
-			to-unix-time params.sampleFrom
-			to-unix-time params.sampleTo
+] |> each ([req-path, module-path]) ->
+	app.get do
+		"/query/#req-path/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:howManyDays?"
+		query-and-result (db, req, res) -> 
+			params = req.params
+			(require module-path) do
+				db
+				to-unix-time params.durationFrom
+				to-unix-time params.durationTo
+				to-country-array params.countries
+				to-unix-time params.sampleFrom
+				to-unix-time params.sampleTo
+				to-int params.howManyDays
 
 
 
 
-app.get do
-	"/query/daily-opens/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?"
-	query-and-result (db, req, res) -> 
-		params = req.params
-		(require \./queries/daily-opens) do
-			db
-			to-unix-time params.durationFrom
-			to-unix-time params.durationTo
-			to-country-array params.countries
-			to-unix-time params.sampleFrom
-			to-unix-time params.sampleTo
-
-
-app.get do
-	"/query/daily-ratings/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?"
-	query-and-result (db, req, res) -> 
-		params = req.params
-		(require \./queries/daily-ratings) do
-			db
-			to-unix-time params.durationFrom
-			to-unix-time params.durationTo
-			to-country-array params.countries
-			to-unix-time params.sampleFrom
-			to-unix-time params.sampleTo
-
-
-app.get do
-	"/query/daily-depth/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?"
-	query-and-result (db, req, res) -> 
-		params = req.params
-		(require \./queries/daily-depth) do
-			db
-			to-unix-time params.durationFrom
-			to-unix-time params.durationTo
-			to-country-array params.countries
-			to-unix-time params.sampleFrom
-			to-unix-time params.sampleTo
-
-
-app.get do
-	"/query/popular-courses/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?"
-	query-and-result (db, req, res) -> 
-		params = req.params
-		(require \./queries/popular-courses) do
-			db
-			to-unix-time params.durationFrom
-			to-unix-time params.durationTo 
-			to-country-array params.countries
-			to-unix-time params.sampleFrom
-			to-unix-time params.sampleTo
-
-app.get do
-	"/query/histogram-flips-cumulative/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:howManyDays?"
-	query-and-result (db, req, res) -> 
-		params = req.params
-		(require \./queries/histogram-flips-cumulative) do
-			db
-			to-unix-time params.durationFrom
-			to-unix-time params.durationTo
-			to-country-array params.countries
-			to-unix-time params.sampleFrom
-			to-unix-time params.sampleTo
-			to-int params.howManyDays
-
-app.get do
-	"/query/histogram-timespent-cumulative/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:howManyDays?"
-	query-and-result (db, req, res) -> 
-		params = req.params
-		(require \./queries/histogram-timespent-cumulative) do
-			db
-			to-unix-time params.durationFrom
-			to-unix-time params.durationTo
-			to-country-array params.countries
-			to-unix-time params.sampleFrom
-			to-unix-time params.sampleTo
-			to-int params.howManyDays
-
-
-app.get do
-	"/query/histogram-timespent-onday/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:howManyDays?"
-	query-and-result (db, req, res) -> 
-		params = req.params
-		(require \./queries/histogram-timespent-onday) do
-			db
-			to-unix-time params.durationFrom
-			to-unix-time params.durationTo
-			to-country-array params.countries
-			to-unix-time params.sampleFrom
-			to-unix-time params.sampleTo
-			to-int params.howManyDays
-
-
-app.get do
-	"/query/histogram-flips-onday/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:howManyDays?"
-	query-and-result (db, req, res) -> 
-		params = req.params
-		(require \./queries/histogram-flips-onday) do
-			db
-			to-unix-time params.durationFrom
-			to-unix-time params.durationTo
-			to-country-array params.countries
-			to-unix-time params.sampleFrom
-			to-unix-time params.sampleTo
-			to-int params.howManyDays
-
-
-app.get do
-	"/query/daily-conversions/:durationFrom/:durationTo/:countries?"
-	query-and-result (db, req, res) -> 
-		params = req.params
-		(require \./queries/daily-conversions) do			
-			db
-			to-unix-time params.durationFrom
-			to-unix-time params.durationTo
-			to-country-array params.countries
-			to-unix-time params.sampleFrom
-			to-unix-time params.sampleTo
-			to-int params.howManyDays
+# -- Views --
 
 app.post do
 	"/login"
