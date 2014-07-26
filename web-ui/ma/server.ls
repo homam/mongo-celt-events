@@ -194,7 +194,7 @@ app.get do
 		(require \./queries/popular-courses) do
 			db
 			to-unix-time params.durationFrom
-			to-unix-time params.durationTo
+			to-unix-time params.durationTo 
 			to-country-array params.countries
 			to-unix-time params.sampleFrom
 			to-unix-time params.sampleTo
@@ -255,7 +255,7 @@ app.get do
 
 
 app.get do
-	"/query/daily-conversions/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?"
+	"/query/daily-conversions/:durationFrom/:durationTo/:countries?"
 	query-and-result (db, req, res) -> 
 		params = req.params
 		(require \./queries/daily-conversions) do			
@@ -286,6 +286,7 @@ app.post do
 	[\/login, \login]
 	[\/usageh, \usageh]
 	[\/timeh, \timeh]
+	[\/conversions, \conversions]
 ] |> each ([path, dir]) ->
 
 	app.use "/#dir/scripts/", express.static "#{dir}-view/scripts"
@@ -297,12 +298,5 @@ app.post do
 			res.render "#{dir}-view/index.html", {title: 'Hello!'}
 			res.end!
 
-
-
-
-
-
-
-
 app.listen app.get \port
-console.log "server started on port #{app.get \port}"
+console.log "server started on port #{app.get \port} " 
