@@ -52,7 +52,7 @@ update = ->
 			..data (-> it.days)
 				..enter!
 					.append \td
-				..text (-> "#{it.installs} / #{it.visits} = #{format-p1(it.conversion)}")
+				..html (-> "#{it.installs} / #{it.visits}<br/>#{format-p1(it.conversion)}")
 		..exit!.remove!
 
 update!

@@ -3,7 +3,7 @@
 	promise-monad
 	to-callback
 } = require \promises-ls
-{each, map, id, find, lists-to-obj, concat} = require \prelude-ls
+{each, map, id, find, lists-to-obj, concat, mean} = require \prelude-ls
 
 input-date = (name) ->
 	d3.select '#main-controls [name=' + name + ']' .node!
@@ -103,7 +103,6 @@ update = ->
 	
 	svg.select 'g.x.axis' .call(xAxis);
 
-	console.log data
 	
 
 
@@ -121,9 +120,11 @@ query = ->
 
 	data-rows := results |> (map ({_id, users}) -> [_id for i in [1 to users]]) |> concat
 
+	console.log \mean, mean data-rows
+
 	update!
 
-	console.log error
+	console.log error if !!error
 
 
 

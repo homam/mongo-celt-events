@@ -21,7 +21,7 @@ query-to   = moment "2014-07-30" .unix! * 1000
 query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, how-many-days = 10) ->
 	(success, reject) <- new-promise
 
-	install-time-to = (Math.min query-to, (new Date! .get-time!)) - (how-many-days * 24 * 60 * 60 * 1000)
+	install-time-to = (Math.min query-to, (new Date! .get-time!)) - (how-many-days * one-day)
 
 	(err, res) <- db.IOSEvents.aggregate do
 		[
@@ -92,7 +92,7 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 
 	return reject err if !!err
 
-	success <| res |> sort-by (._id) # |> map ({_id, users, chapters}) -> {day: _id, users, chapters: (Math.round chapters*10)/10}
+	success <| res |> sort-by (._id)
 
 
 module.exports = query
