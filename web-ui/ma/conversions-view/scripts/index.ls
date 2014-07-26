@@ -8,9 +8,6 @@
 input-date = (name) ->
 	d3.select '#main-controls [name=' + name + ']' .node!
 
-input-date \sampleFrom .value = "2014-07-20"
-input-date \sampleTo .value = moment!.add \days, 1 .format \YYYY-MM-DD\
-
 input-date \queryFrom .value = "2014-07-20"
 input-date \queryTo .value = moment!.add \days, 1 .format \YYYY-MM-DD\
 
@@ -61,18 +58,17 @@ update = ->
 update!
 
 format-p1 = d3.format \.1%
-format-d0 = d3.format ',f'
-format-d1 = d3.format ',.1f'
+format-t = (timestamp)-> moment(new Date(timestamp)).format("DD-MM")
 
 query = ->
 
-	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
+	[queryFrom, queryTo] = <[queryFrom queryTo]> |> map input-date >> (.value)
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-conversions/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-conversions/#{queryFrom}/#{queryTo}/CA,IE"
 
 	[queryFrom, queryTo] = <[queryFrom queryTo]> |> map input-date >> (.valueAsDate.getTime!)
 	
-	data-cols := ["Sources"] ++ ([queryFrom to queryTo by 86400000] |> map (-> new Date(it).toDateString!))
+	data-cols := ["Sources"] ++ ([queryFrom to queryTo by 86400000] |> map format-t)
 	data-rows := results
 
 	update!

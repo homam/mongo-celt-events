@@ -242,7 +242,7 @@ app.get do
 
 
 app.get do
-	"/query/daily-conversions/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?"
+	"/query/daily-conversions/:durationFrom/:durationTo/:countries?"
 	query-and-result (db, req, res) -> 
 		params = req.params
 		(require \./queries/daily-conversions) do			

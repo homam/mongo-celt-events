@@ -4,7 +4,7 @@
 		new-promise
 	}
 } = require \async-ls
-{map, sort, sort-by, mean, fold, find-index} = require \prelude-ls
+{map, sort, sort-by, mean, fold, find-index, reverse} = require \prelude-ls
 
 
 one-hour = 1000*60*60
@@ -57,6 +57,10 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 		]
 		(err, res) ->
 			return reject err if !!err
-			success <| res |> map ({_id, days}) -> {source: _id.source, days: days |> sort-by (.day) |> (fill-in-the-gaps query-from, query-to)}
+			success <| res |> map ({_id, days}) ->
+				source: _id.source
+				days: days |> (fill-in-the-gaps query-from, query-to)
+				conversion: days |> map (.conversion) |> mean
+			|> sort-by (.conversion) |> reverse 
 
 module.exports = query
