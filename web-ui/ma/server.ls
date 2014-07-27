@@ -113,6 +113,8 @@ app.get do
 	* \histogram-timespent-onday, \./queries/histogram-timespent-onday
 	* \histogram-flips-onday, \./queries/histogram-flips-onday
 	* \daily-conversions, \./queries/daily-conversions
+	* \funnel-depth-cumulative, \./queries/funnel-depth-cumulative
+	* \funnel-depth-onday, \./queries/funnel-depth-onday
 
 ] |> each ([req-path, module-path]) ->
 	app.get do
@@ -146,13 +148,14 @@ app.post do
 		res.end!
 
 [
-	[\/, \index]
-	[\/usage, \usage]
-	[\/popular, \popular]
-	[\/login, \login]
-	[\/usageh, \usageh]
-	[\/timeh, \timeh]
-	[\/conversions, \conversions]
+	* \/, \index
+	* \/usage, \usage
+	* \/popular, \popular
+	* \/login, \login
+	* \/usageh, \usageh
+	* \/timeh, \timeh
+	* \/conversions, \conversions
+	* \/funnel, \funnel
 ] |> each ([path, dir]) ->
 
 	app.use "/#dir/scripts/", express.static "#{dir}-view/scripts"
