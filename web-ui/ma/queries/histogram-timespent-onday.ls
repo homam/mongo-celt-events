@@ -11,11 +11,6 @@ moment = require \moment
 
 one-hour = 1000*60*60
 one-day =  one-hour*24
-from-time = 0*one-day
-to-time = 10*one-day
-
-query-from = moment "2014-07-01" .unix! * 1000
-query-to   = moment "2014-07-30" .unix! * 1000
 
 
 
