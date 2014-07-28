@@ -54,6 +54,10 @@ to-int = (s) ->
 	i = parseInt s
 	if i < Infinity then i else null
 
+to-bool = (s) ->
+	return null if check-empty s
+	return \true == s.to-lower-case!
+
 
 to-array = (s) ->
 	return null if check-empty s
@@ -112,8 +116,6 @@ app.get do
 	* \histogram-timespent-cumulative, \./queries/histogram-timespent-cumulative
 	* \histogram-timespent-onday, \./queries/histogram-timespent-onday
 	* \histogram-flips-onday, \./queries/histogram-flips-onday
-	* \histogram-eocs-cumulative, \./queries/histogram-eocs-cumulative
-	* \histogram-eocs-onday, \./queries/histogram-eocs-onday
 	* \daily-conversions, \./queries/daily-conversions
 	* \funnel-depth-cumulative, \./queries/funnel-depth-cumulative
 	* \funnel-depth-onday, \./queries/funnel-depth-onday
@@ -132,6 +134,25 @@ app.get do
 				to-unix-time params.sampleTo
 				to-int params.howManyDays
 
+
+[
+	* \histogram-eocs-cumulative, \./queries/histogram-eocs-cumulative
+	* \histogram-eocs-onday, \./queries/histogram-eocs-onday
+
+] |> each ([req-path, module-path]) ->
+	app.get do
+		"/query/#req-path/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:howManyDays?/:uniqueCount?"
+		query-and-result (db, req, res) -> 
+			params = req.params
+			(require module-path) do
+				db
+				to-unix-time params.durationFrom
+				to-unix-time params.durationTo
+				to-country-array params.countries
+				to-unix-time params.sampleFrom
+				to-unix-time params.sampleTo
+				to-int params.howManyDays
+				to-bool params.uniqueCount
 
 
 

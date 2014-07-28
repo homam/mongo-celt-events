@@ -3,7 +3,7 @@
 	promise-monad
 	to-callback
 } = require \promises-ls
-{each, map, id, find, lists-to-obj, concat} = require \prelude-ls
+{each, map, id, find, lists-to-obj, concat, drop, sum} = require \prelude-ls
 
 input-date = (name) ->
 	d3.select '#main-controls [name=' + name + ']' .node!
@@ -64,7 +64,11 @@ update = ->
 		.range [0, width]
 		.domain [0, (d3.max data-rows)]
 
-	bins = x.ticks (Math.min width/35, (d3.max data-rows))
+	x2 = d3.scale.linear!
+		.range [0, width]
+		.domain [1, (d3.max data-rows)]
+
+	bins = x2.ticks (Math.min width/35, (d3.max data-rows))
 	data = d3.layout.histogram!.bins(bins)(data-rows)
 
 	y = d3.scale.linear!
@@ -72,7 +76,7 @@ update = ->
 		.range [height, 0]
 
 	xAxis = d3.svg.axis!
-		.scale x
+		.scale x2
 		.ticks bins.length
 		.orient \bottom
 
@@ -84,14 +88,14 @@ update = ->
 				..append \rect
 				..append \text
 		..attr "class", "bar"
-		..attr "transform", -> "translate(" + x(it.x) + "," + y(it.y) + ")"
+		..attr "transform", -> "translate(" + (x2(it.x) - 1) + "," + y(it.y) + ")"
 		..exit!
 			.remove!
 
 
 	bar.select "rect"
 		.attr "x", 1
-		.attr "width", x(data[0].dx) - 1
+		.attr "width", x(data[0].dx)
 		.attr "height", -> height - y(it.y)
 
 	bar.select \text
@@ -109,19 +113,25 @@ update = ->
 
 
 
+format-p0 = d3.format \%
+format-d0 = d3.format ',f'
+
 
 query = ->
 
-	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
+	[sampleFrom, sampleTo, queryFrom, queryTo, uniqueCount] = <[sampleFrom sampleTo queryFrom queryTo uniqueCount]> |> map input-date >> (.value)
 
 	how-many-days = parseInt (input-date \howManyDays .value)
 
 	type = input-date \histogramType .value
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/histogram-eocs-#type/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{how-many-days}"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/histogram-eocs-#type/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{how-many-days}/#{uniqueCount}"
 
-	data-rows := results |> (map ({_id, users}) -> [_id for i in [1 to users]]) |> concat
+	zero-users = results.0.users
+	total-users = results |> map (.users) |> sum
+	data-rows := results |> (drop 1) |> (map ({_id, users}) -> [_id for i in [1 to users]]) |> concat
 
+	d3.select \#zero-chapter-count .text "#{format-d0 zero-users} = #{format-p0 (zero-users/total-users)}"
 
 	update!
 

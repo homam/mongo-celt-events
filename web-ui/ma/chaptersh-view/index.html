@@ -54,6 +54,14 @@
 						<select name="howManyDays"></select>
 					</div>
 				</div>
+				<div>
+					<div class="controls">
+						<select name="uniqueCount">
+							<option value="true">Count same Chapter once</option>
+							<option value="false">Recount same Chapter Finishes</option>
+						</select>
+					</div>
+				</div>
 			</div>
 			<button type="submit">
 				Query
@@ -63,6 +71,10 @@
 
 		</svg>
 		
+		<div id="zero-chapter" style="margin-top: 1em">
+			Users that have seen 0 chapters:
+			<label id="zero-chapter-count"></label>
+		</div>
 
 		<script src="/chaptersh/scripts/index.js"></script>
 
