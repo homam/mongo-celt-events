@@ -3,7 +3,7 @@
 	promise-monad
 	to-callback
 } = require \promises-ls
-{each, map, id, find, lists-to-obj, concat, drop, sum} = require \prelude-ls
+{each, map, filter, id, find, lists-to-obj, concat, drop, sum} = require \prelude-ls
 
 input-date = (name) ->
 	d3.select '#main-controls [name=' + name + ']' .node!
@@ -128,10 +128,15 @@ query = ->
 	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/histogram-eocs-#type/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{how-many-days}/#{uniqueCount}"
 
 	zero-users = results.0.users
+	one-or-more-users = results |> filter (._id >= 1) |> map (.users) |> sum
+	two-or-more-users = results |> filter (._id >= 2) |> map (.users) |> sum
 	total-users = results |> map (.users) |> sum
+
 	data-rows := results |> (drop 1) |> (map ({_id, users}) -> [_id for i in [1 to users]]) |> concat
 
 	d3.select \#zero-chapter-count .text "#{format-d0 zero-users} = #{format-p0 (zero-users/total-users)}"
+	d3.select \#one-or-more-chapter-count .text "#{format-d0 one-or-more-users} = #{format-p0 (one-or-more-users/total-users)}"
+	d3.select \#two-or-more-chapter-count .text "#{format-d0 two-or-more-users} = #{format-p0 (two-or-more-users/total-users)}"
 
 	update!
 
