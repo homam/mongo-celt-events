@@ -112,6 +112,8 @@ app.get do
 	* \histogram-timespent-cumulative, \./queries/histogram-timespent-cumulative
 	* \histogram-timespent-onday, \./queries/histogram-timespent-onday
 	* \histogram-flips-onday, \./queries/histogram-flips-onday
+	* \histogram-eocs-cumulative, \./queries/histogram-eocs-cumulative
+	* \histogram-eocs-onday, \./queries/histogram-eocs-onday
 	* \daily-conversions, \./queries/daily-conversions
 	* \funnel-depth-cumulative, \./queries/funnel-depth-cumulative
 	* \funnel-depth-onday, \./queries/funnel-depth-onday
@@ -154,6 +156,7 @@ app.post do
 	* \/login, \login
 	* \/usageh, \usageh
 	* \/timeh, \timeh
+	* \/chaptersh, \chaptersh
 	* \/conversions, \conversions
 	* \/funnel, \funnel
 ] |> each ([path, dir]) ->
