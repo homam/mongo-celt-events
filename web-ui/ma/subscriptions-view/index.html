@@ -1,0 +1,59 @@
+<html>
+	<head>
+		<title>Subscriptions</title>
+		<meta name="viewport" content="width=device-width, user-scalable=yes">
+
+		<script src="/libs/prelude-browser.js"></script>
+		<script src="/libs/d3.js"></script>
+		<script src="/libs/promises-browser-all.js"></script>
+		<script src="/libs/moment.js"></script>
+		<script src="/graphs/table.js"></script>
+
+		<link rel="Stylesheet" type="text/css" href="/subscriptions/styles/main-controls.css" />
+
+		<style type="text/css">
+			
+		</style>
+	</head>
+	<body>
+		<h1>Subscription</h1>
+		<form id="main-controls">
+			<div class="controls">			
+				<div id="main-controls-sample">
+					<h5>Sample:</h5>
+					<div class="controls">
+						<div>
+							<label for="sampleFrom">From:</label> <input type="date" name="sampleFrom">
+						</div>
+						<div>
+							<label for="sampleTo">To:</label> <input type="date" name="sampleTo">
+						</div>
+					</div>
+				</div>	
+				<div id="main-controls-query">
+					<h5>Query:</h5>
+					<div class="controls">
+						<div>
+							<label for="queryFrom">From:</label> <input type="date" name="queryFrom">
+						</div>
+						<div>
+							<label for="queryTo">To:</label> <input type="date" name="queryTo">
+						</div>
+					</div>
+				</div>
+			</div>
+			<button type="submit">
+				Query
+			</button>
+		</form>
+		<table id="main">
+			<thead><tr></tr></thead>
+			<tbody></tbody>
+		</table>
+		
+
+		<script src="/subscriptions/scripts/index.js"></script>
+
+		<% include ../footer.html %>   
+	</body>
+</html>

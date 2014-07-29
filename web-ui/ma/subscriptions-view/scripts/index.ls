@@ -8,6 +8,9 @@
 input-date = (name) ->
 	d3.select '#main-controls [name=' + name + ']' .node!
 
+input-date \sampleFrom .value = "2014-07-20"
+input-date \sampleTo .value = moment!.add \days, 1 .format \YYYY-MM-DD\
+
 input-date \queryFrom .value = "2014-07-20"
 input-date \queryTo .value = moment!.add \days, 1 .format \YYYY-MM-DD\
 
@@ -30,9 +33,6 @@ document.getElementById \main-controls .add-event-listener do
 
 $table = d3.select \table#main
 
-print-conversion-data = (data)->
-	if data.visits == 0 then "-" else "#{data.installs} / #{data.visits}<br>#{format-p1(data.conversion)}"
-
 update = ->
 	
 	$table.select \thead .select \tr .select-all \th
@@ -42,21 +42,17 @@ update = ->
 			.text id
 		..exit!.remove!
 	
+	console.log JSON.stringify(data-rows, null, 4)
+
 	$table.select \tbody .select-all \tr
 	.data data-rows
 		..enter!
 			.append \tr		
 		..select-all \td
-			..data (-> [it.source])
+			..data id
 				..enter!
-					.append \td
+					.append \td				
 				..text id
-			..data (-> it.days)
-				..enter!
-					.append \td
-				..style "text-align", (-> if it.visits == 0 then "center" else "right")				
-				..html print-conversion-data
-				..attr "title", (.source)
 		..exit!.remove!
 
 update!
@@ -66,14 +62,20 @@ format-t = (timestamp)-> moment(new Date(timestamp)).format("DD-MM")
 
 query = ->
 
-	[queryFrom, queryTo] = <[queryFrom queryTo]> |> map input-date >> (.value)
+	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-conversions/#{queryFrom}/#{queryTo}/CA,IE"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-subscriptions/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}"
+
+	pretty = (m)-> JSON.stringify(m, null, 4)
+
+	data-rows := [
+		["Viewed Payment page"] ++ (results |> map (.subscriptionPageViews))
+		["Purchased"] ++ (results |> map (.purchases))
+	]
 
 	[queryFrom, queryTo] = <[queryFrom queryTo]> |> map input-date >> (.valueAsDate.getTime!)
 	
-	data-cols := ["Sources"] ++ ([queryFrom to queryTo by 86400000] |> map format-t)
-	data-rows := results |> map (e)-> e <<< days: (e.days |> map -> it <<< source: e.source)
+	data-cols := [""] ++ ([queryFrom to queryTo by 86400000] |> map format-t)	
 
 	update!
 
