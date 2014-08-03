@@ -97,6 +97,7 @@ app.get do
 	* \daily-depth, \./queries/daily-depth
 	* \daily-eocs, \./queries/daily-eocs
 	* \popular-courses, \./queries/popular-courses
+	* \daily-push, \./queries/daily-push
 
 ] |> each ([req-path, module-path]) ->
 	app.get do
@@ -182,6 +183,7 @@ app.post do
 	* \/conversions, \conversions
 	* \/funnel, \funnel
 	* \/subscriptions, \subscriptions
+	* \/push, \push
 ] |> each ([path, dir]) ->
 
 	app.use "/#dir/scripts/", express.static "#{dir}-view/scripts"
