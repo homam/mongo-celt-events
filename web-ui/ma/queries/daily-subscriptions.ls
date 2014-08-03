@@ -38,14 +38,9 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
                 $project:
                     day: $divide: [$subtract: ["$serverTime", $mod: ["$serverTime", 86400000]], 86400000]
                     adId: "$device.adId"
-                    event: "$event"
-                    subscriptionOrPurchased: $or: [{$eq: ["$event.name", "IAP-Purchased"]}, {$eq: ["$event.toView.name", "Subscription"]}]
+                    event: "$event"                    
                     installationTime: $subtract: ["$serverTime", "$timeDelta"]
-            }
-            {
-                $match:
-                    subscriptionOrPurchased: true                    
-            }
+            }            
         ] ++ (
             if !!sample-to && !!sample-from        
                 [
@@ -60,14 +55,16 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
                     _id: 
                         day: "$day" 
                         adId: "$adId"
-                    subscriptionPageViews: $sum: {$cond: [$eq: ["$event.name", "transition"], 1, 0]}
-                    purchases: $sum: {$cond: [$ne: ["$event.name", "transition"], 1, 0]}                
+                    subscriptionPageViews: $sum: {$cond: [$eq: ["$event.toView.name", "Subscription"], 1, 0]}
+                    purchases: $sum: {$cond: [$eq: ["$event.name", "IAP-Purchased"], 1, 0]} 
+                    buyTries: $sum: {$cond: [$eq: ["$event.name", "IAP-BuyTry"], 1, 0]} 
             }
             {
                 $group:
                     _id: "$_id.day",
                     subscriptionPageViews: $sum: {$cond: [$gt:["$subscriptionPageViews", 0], 1, 0]}
-                    purchases: $sum: {$cond: [$gt:["$purchases", 0], 1, 0]}                
+                    purchases: $sum: {$cond: [$gt:["$purchases", 0], 1, 0]}
+                    buyTries: $sum: {$cond: [$gt:["$buyTries", 0], 1, 0]}
             }
         ]
         (err, res) ->

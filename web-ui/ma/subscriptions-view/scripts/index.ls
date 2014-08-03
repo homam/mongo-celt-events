@@ -8,10 +8,10 @@
 input-date = (name) ->
 	d3.select '#main-controls [name=' + name + ']' .node!
 
-input-date \sampleFrom .value = "2014-07-20"
+input-date \sampleFrom .value = "2014-07-27"
 input-date \sampleTo .value = moment!.add \days, 1 .format \YYYY-MM-DD\
 
-input-date \queryFrom .value = "2014-07-20"
+input-date \queryFrom .value = "2014-07-27"
 input-date \queryTo .value = moment!.add \days, 1 .format \YYYY-MM-DD\
 
 
@@ -52,7 +52,7 @@ update = ->
 			..data id
 				..enter!
 					.append \td				
-				..text id
+				..text (-> if !!it then it else "-")
 		..exit!.remove!
 
 update!
@@ -64,13 +64,14 @@ query = ->
 
 	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-subscriptions/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-subscriptions/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}"
 
 	pretty = (m)-> JSON.stringify(m, null, 4)
 
 	data-rows := [
 		["Viewed Payment page"] ++ (results |> map (.subscriptionPageViews))
-		["Purchased"] ++ (results |> map (.purchases))
+		["Tapped Buy Button"] ++ (results |> map (.buyTries))
+		["Purchased"] ++ (results |> map (.purchases))		
 	]
 
 	[queryFrom, queryTo] = <[queryFrom queryTo]> |> map input-date >> (.valueAsDate.getTime!)
