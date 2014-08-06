@@ -86,6 +86,10 @@ app.get do
 	"/query/latest-users"
 	query-and-result (db, req, res) -> (require \./queries/latest-users) db, parseInt req.query[\limit]
 
+app.get do
+	"/query/media-sources"
+	query-and-result (db, req, res) -> (require \./queries/media-sources) db
+
 
 [
 	* \daily-chapters, \./queries/daily-chapters
@@ -99,10 +103,9 @@ app.get do
 	* \popular-courses, \./queries/popular-courses
 	* \daily-push, \./queries/daily-push
 	* \daily-active-users, \./queries/daily-active-users
-
 ] |> each ([req-path, module-path]) ->
 	app.get do
-		"/query/#req-path/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?"
+		"/query/#req-path/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:sources?"
 		query-and-result (db, req, res) -> 
 			params = req.params
 			(require module-path) do
@@ -112,6 +115,7 @@ app.get do
 				to-country-array params.countries
 				to-unix-time params.sampleFrom
 				to-unix-time params.sampleTo
+				to-array params.sources
 
 [
 	* \histogram-flips-cumulative, \./queries/histogram-flips-cumulative
@@ -155,8 +159,6 @@ app.get do
 				to-unix-time params.sampleTo
 				to-int params.howManyDays
 				to-bool params.uniqueCount
-
-
 
 # -- Views --
 

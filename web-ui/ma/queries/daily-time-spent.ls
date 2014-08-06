@@ -7,21 +7,26 @@
 	}
 } = require \async-ls
 {map, sort, sort-by, mean} = require \prelude-ls
+utils = require "./utils"
 
 one-hour = 1000*60*60
 one-day =  one-hour*24
 
+query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->
+	(success, reject) <- new-promise			
+	(err, devices) <- utils.get-devices-from-media-sources db, sources	
+	(err, result) <- daily-time-spent db, query-from, query-to, countries, sample-from, sample-to, devices
+	return reject err if !!err
+	success <| result
 
-query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null) ->
-	(success, reject) <- new-promise
+daily-time-spent = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, devices = null, callback) ->	
 	(err, res) <- db.IOSEvents.aggregate do
 		[
 			{
 				$match:
-					"device.adId": $exists: 1
+					"device.adId": {$exists: 1} <<< if !!devices then $in: devices else {}
 					sessionNumber: $exists: 1
 					subSessionNumber: $exists: 1
-
 					timeDelta: $exists: 1
 					serverTime: $gte: query-from, $lte: query-to
 					country: {$exists: 1} <<< if !!countries then $in: countries else {}
@@ -84,10 +89,12 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 					duration: $avg: "$duration"
 			}
 		]
-
-	return reject err if !!err
+	return callback err, null if !!err
 
 	pretty = (/(1000)) >> Math.round
-	success <| res |> sort-by (._id) |> map ({_id, users, sessions, avgSessionDuration, duration}) -> {day: _id, users, sessions, avgSessionDuration: (pretty avgSessionDuration), avgDailyDuration: (pretty duration) }
+
+	result = res |> sort-by (._id) |> map ({_id, users, sessions, avgSessionDuration, duration}) -> {day: _id, users, sessions, avgSessionDuration: (pretty avgSessionDuration), avgDailyDuration: (pretty duration) }
+
+	callback null, result
 
 module.exports = query

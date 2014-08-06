@@ -7,16 +7,24 @@
 	}
 } = require \async-ls
 {map, sort, sort-by, mean, filter, first, group-by, concat-map, foldl, Obj, maximum} = require \prelude-ls
+utils = require "./utils"
 
 one-hour = 1000*60*60
 one-day =  one-hour*24
 
-query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null) ->
-	(success, reject) <- new-promise
+query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->
+	(success, reject) <- new-promise				
+	(err, devices) <- utils.get-devices-from-media-sources db, sources		
+	(err, result) <- daily-ratings db, query-from, query-to, countries, sample-from, sample-to, devices
+	return reject err if !!err
+	success <| result
+
+daily-ratings = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, devices = null, callback) ->
 	(err, res) <- db.IOSEvents.aggregate do 
 		[
 			{
 				$match: 
+					"device.adId": {$exists: 1} <<< if !!devices then $in: devices else {}
 					"event.name":"ratePopupDismissed" 
 					timeDelta: $exists: 1
 					country: {$in: ["CA", "IE"]}
@@ -56,7 +64,7 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 			}
 		]
 
-	return reject err if !!err
-	success res
+	return callback err, null if !!err
+	callback null, res
 
 module.exports = query
