@@ -103,6 +103,7 @@ app.get do
 	* \popular-courses, \./queries/popular-courses
 	* \daily-push, \./queries/daily-push
 	* \daily-active-users, \./queries/daily-active-users
+	* \purchased-for, \./queries/purchased-for
 ] |> each ([req-path, module-path]) ->
 	app.get do
 		"/query/#req-path/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:sources?"
