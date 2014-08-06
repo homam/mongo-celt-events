@@ -36,14 +36,11 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 	query-from -= (new Date()).getTimezoneOffset() * 60000
 	query-to -= (new Date()).getTimezoneOffset() * 60000
 
-	(success, reject) <- new-promise
-	(err, facebookUsers) <- get-facebook-users db, query-from, query-to, countries, sample-from, sample-to
-	console.log "facebook users: #{JSON.stringify(facebookUsers, null, 3)}"
+	(success, reject) <- new-promise		
 	(err, res) <- db.IOSEvents.aggregate do
 		[
 			{
-				$match:					
-					"device.adId": $in: facebookUsers
+				$match:										
 					timeDelta: $exists: 1
 					serverTime: $gte: query-from, $lte: query-to
 					country: {$exists: 1} <<< if !!countries then $in: countries else {}
