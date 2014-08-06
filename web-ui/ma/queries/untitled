@@ -1,0 +1,17 @@
+"$nin": db.IOSEvents.aggregate([
+    {
+        "$match":
+            "country": "$in": countries
+            "event.name": "IAP-PurchaseVerified"
+    }
+    {
+        "$project":
+            "adId": "$device.adId"
+            "name": "$device.name"    
+    }
+    {
+        "$group":
+            "_id": "$adId"    
+    }
+]).result.map (e)->
+    e["_id"]

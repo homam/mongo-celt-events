@@ -68,7 +68,8 @@ to-country-array = (s) ->
 	return null if !arr
 	arr |> filter (-> 2 == it.length) |> map (-> it.toUpperCase!)
 
-
+to-user-filter = (s)->
+	return s
 
 query-and-result = (promise, req, res) -->
 	db = connect-db!
@@ -129,9 +130,11 @@ app.get do
 
 ] |> each ([req-path, module-path]) ->
 	app.get do
-		"/query/#req-path/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:howManyDays?"
+		"/query/#req-path/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:howManyDays?/:userPaymentStatus?"
+
 		query-and-result (db, req, res) -> 
 			params = req.params
+
 			(require module-path) do
 				db
 				to-unix-time params.durationFrom
@@ -140,6 +143,7 @@ app.get do
 				to-unix-time params.sampleFrom
 				to-unix-time params.sampleTo
 				to-int params.howManyDays
+				to-user-filter params.userPaymentStatus
 
 
 [
