@@ -14,7 +14,6 @@ input-date \sampleTo .value = moment!.add \days, 1 .format \YYYY-MM-DD
 input-date \queryFrom .value = "2014-07-20"
 input-date \queryTo .value = moment!.add \days, 1 .format \YYYY-MM-DD
 
-
 d3.select '[name=howManyDays]' .selectAll \option .data [0 to 30]
 	..enter!
 		.append \option .text id
@@ -109,14 +108,27 @@ update = ->
 
 
 query = ->
-
+	
 	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
+	
+	isFreeChecked = document.getElementsByName("free")[0].checked
+	isPurchasedChecked = document.getElementsByName("purchased")[0].checked
+	user-payment-status = 'all'
+
+	if isFreeChecked
+		user-payment-status = 'free'
+
+	if isPurchasedChecked
+		user-payment-status = 'purchased'
+
+	if isPurchasedChecked && isFreeChecked
+		user-payment-status = 'all'
 
 	how-many-days = parseInt (input-date \howManyDays .value)
 
 	type = input-date \histogramType .value
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/histogram-timespent-#type/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{how-many-days}"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/histogram-timespent-#type/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{how-many-days}/#{user-payment-status}"
 
 	data-rows := results |> (map ({_id, users}) -> [_id for i in [1 to users]]) |> concat
 
