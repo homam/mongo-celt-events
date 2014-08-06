@@ -32,9 +32,6 @@ document.getElementById \main-controls .add-event-listener do
 		return false
 	true
 
-
-
-
 $table = d3.select \table#main
 
 $table.select \thead .select \tr .select-all \td

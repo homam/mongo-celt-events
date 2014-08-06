@@ -12,18 +12,38 @@
 one-hour = 1000*60*60
 one-day =  one-hour*24
 
+get-facebook-users = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, callback)->
+
+	(err, result) <- db.IOSUsers.aggregate do 
+		[
+			{
+				$match: 
+					country: $in: ["CA", "IE", "US"]					
+					"appsFlyer.media_source": "Facebook Ads"
+			}
+			{
+				$project:
+					adId: "$device.adId"
+			}
+		]	
+	callback err, (result |> map (.adId))
 
 
 query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null) ->
 	now = new Date! .get-time!
 	today = now / one-day - ((now / one-day)%1)
 	
+	query-from -= (new Date()).getTimezoneOffset() * 60000
+	query-to -= (new Date()).getTimezoneOffset() * 60000
+
 	(success, reject) <- new-promise
+	(err, facebookUsers) <- get-facebook-users db, query-from, query-to, countries, sample-from, sample-to
+	console.log "facebook users: #{JSON.stringify(facebookUsers, null, 3)}"
 	(err, res) <- db.IOSEvents.aggregate do
 		[
 			{
-				$match:
-					"device.adId": $exists: 1
+				$match:					
+					"device.adId": $in: facebookUsers
 					timeDelta: $exists: 1
 					serverTime: $gte: query-from, $lte: query-to
 					country: {$exists: 1} <<< if !!countries then $in: countries else {}
@@ -32,12 +52,9 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 				$project:
 					adId: "$device.adId"
 					timeDelta: 1
-
 					installTime: $subtract: ["$serverTime", "$timeDelta"]
-
 					# days passed since installation
-					daysAfterInstallation: $subtract: [$divide: ["$timeDelta", one-day], {$mod: [$divide: ["$timeDelta", one-day], 1]}]
-					
+					daysAfterInstallation: $subtract: [$divide: ["$timeDelta", one-day], {$mod: [$divide: ["$timeDelta", one-day], 1]}]					
 					eventDate: $subtract: ["$serverTime", "$timeDelta"]
 			}
 		] ++ ( 

@@ -98,6 +98,7 @@ app.get do
 	* \daily-eocs, \./queries/daily-eocs
 	* \popular-courses, \./queries/popular-courses
 	* \daily-push, \./queries/daily-push
+	* \daily-active-users, \./queries/daily-active-users
 
 ] |> each ([req-path, module-path]) ->
 	app.get do
@@ -111,7 +112,6 @@ app.get do
 				to-country-array params.countries
 				to-unix-time params.sampleFrom
 				to-unix-time params.sampleTo
-
 
 [
 	* \histogram-flips-cumulative, \./queries/histogram-flips-cumulative
