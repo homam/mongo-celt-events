@@ -5,23 +5,28 @@
 		new-promise
 	}
 } = require \async-ls
-
 {map, sort, sort-by, mean} = require \prelude-ls
-
+utils = require "./utils"
 
 one-hour = 1000*60*60
 one-day =  one-hour*24
 
+query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->
+	(success, reject) <- new-promise				
+	(err, devices) <- utils.get-devices-from-media-sources db, sources		
+	(err, result) <- daily-cards db, query-from, query-to, countries, sample-from, sample-to, devices
+	return reject err if !!err
+	success <| result
 
 # if the user visits the same Flashcard / EOC / etc. twice in the same day
 # this query count it as once
 
-query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null) ->
-	(success, reject) <- new-promise
+daily-cards = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, devices = null, callback) ->	
 	db.IOSEvents.aggregate do
 		[
 			{
 				$match:
+					"device.adId": {$exists: 1} <<< if !!devices then $in: devices else {}
 					"event.name": "transition"
 					# "event.toView.name": "Flashcard" # , "EOC", "Question", "EOQ"]
 					"event.toView.name": $in: ["Flashcard" , "EOC", "Question", "EOQ"]
@@ -132,7 +137,7 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 			}
 		]
 		(err, res) ->
-			return reject err if !!err
-			success <| res |> sort-by (._id)
+			return callback err, null if !!err
+			callback null, (res |> sort-by (._id))
 
 module.exports = query

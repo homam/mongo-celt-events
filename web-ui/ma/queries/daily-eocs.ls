@@ -4,11 +4,11 @@
 	promises: {
 		promise-monad
 		new-promise
-	}
+	} 
 } = require \async-ls
 {map, sort, sort-by, mean} = require \prelude-ls
 
-
+ 
 one-hour = 1000*60*60
 one-day =  one-hour*24
 

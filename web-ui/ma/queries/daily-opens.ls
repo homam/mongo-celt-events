@@ -8,36 +8,42 @@
 	}
 } = require \async-ls
 {map, sort, sort-by, mean, filter, first, group-by, concat-map, foldl, maximum} = require \prelude-ls
+utils = require "./utils"
 
 one-hour = 1000*60*60
 one-day =  one-hour*24
 
+query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->
+	(success, reject) <- new-promise
+	(err, devices) <- utils.get-devices-from-media-sources db, sources	
+	(err, result) <- daily-opens db, query-from, query-to, countries, sample-from, sample-to, devices
+	return reject err if !!err
+	success <| result
 
+daily-opens = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, devices = null, callback) ->
 
-query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null) ->
 	now = new Date! .get-time!
 	today = now / one-day - ((now / one-day)%1)
 	
-	(success, reject) <- new-promise
+	query-from -= (new Date()).getTimezoneOffset() * 60000
+	query-to -= (new Date()).getTimezoneOffset() * 60000	
+	
 	(err, res) <- db.IOSEvents.aggregate do
 		[
 			{
-				$match:
-					"device.adId": $exists: 1
+				$match:										
 					timeDelta: $exists: 1
 					serverTime: $gte: query-from, $lte: query-to
 					country: {$exists: 1} <<< if !!countries then $in: countries else {}
+					"device.adId": {$exists: 1} <<< if !!devices then $in: devices else {}
 			}
 			{
 				$project:
 					adId: "$device.adId"
 					timeDelta: 1
-
 					installTime: $subtract: ["$serverTime", "$timeDelta"]
-
 					# days passed since installation
-					daysAfterInstallation: $subtract: [$divide: ["$timeDelta", one-day], {$mod: [$divide: ["$timeDelta", one-day], 1]}]
-					
+					daysAfterInstallation: $subtract: [$divide: ["$timeDelta", one-day], {$mod: [$divide: ["$timeDelta", one-day], 1]}]					
 					eventDate: $subtract: ["$serverTime", "$timeDelta"]
 			}
 		] ++ ( 
@@ -89,14 +95,13 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 			}
 		]
 
-
-	return reject err if !!err
+	return callback err, null if !!err
 
 	res = res |> sort-by (._id) |> map (-> {day:it._id} <<< (values: it.values |> sort-by (.daysAfterInstallation)) )
 
 	how-many-days = res |> map (-> today - it.day) |> maximum
 
-	success <| [0 to how-many-days] |> map (j) ->
+	result = [0 to how-many-days] |> map (j) ->
 			[base, users] = res 
 				|> filter (({day, values}) -> day <= today - j) 
 				|> concat-map (.values)
@@ -104,5 +109,6 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 					[base + if daysAfterInstallation == 0 then users else 0, usage + if daysAfterInstallation == j then users else 0] ), [0, 0]
 			{day: j, base, users, ratio: users/base}
 
+	callback null, result
 
 module.exports = query

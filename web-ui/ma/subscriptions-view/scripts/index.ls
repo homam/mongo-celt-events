@@ -64,14 +64,16 @@ query = ->
 
 	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-subscriptions/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}"
+	(error, daily-users) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-active-users/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}"
+	(error, daily-subscriptions) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-subscriptions/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}"
 
 	pretty = (m)-> JSON.stringify(m, null, 4)
 
 	data-rows := [
-		["Viewed Payment page"] ++ (results |> map (.subscriptionPageViews))
-		["Tapped Buy Button"] ++ (results |> map (.buyTries))
-		["Purchased"] ++ (results |> map (.purchases))		
+		["Active users"] ++ (daily-users |> map (.count))
+		["Viewed Payment page"] ++ (daily-subscriptions |> map (.subscriptionPageViews))
+		["Tapped Buy Button"] ++ (daily-subscriptions |> map (.buyTries))
+		["Purchased"] ++ (daily-subscriptions |> map (.purchases))		
 	]
 
 	[queryFrom, queryTo] = <[queryFrom queryTo]> |> map input-date >> (.valueAsDate.getTime!)

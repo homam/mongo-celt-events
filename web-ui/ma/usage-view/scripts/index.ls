@@ -17,6 +17,8 @@ input-date \queryTo .value = moment!.add \days, 1 .format \YYYY-MM-DD
 
 how-many-days = 30
 
+sources = "-"
+
 fresh-rows = ->
 	data-rows = [
 		[\base, 'Base']
@@ -44,14 +46,20 @@ document.getElementById \main-controls .add-event-listener do
 	\submit
 	-> 
 		data-rows := fresh-rows!
+		sources := (document.querySelectorAll '#main-controls-sources [type=checkbox]:checked' |> map (.value)).join!
 		update!
 		query!
 		it.preventDefault!
 		return false
 	true
 
+document.getElementById \select-all .add-event-listener do 
+	\click
+	-> document.querySelectorAll '#main-controls-sources [type=checkbox]' |> map -> it.checked = true
 
-
+document.getElementById \deselect-all .add-event-listener do 
+	\click
+	-> document.querySelectorAll '#main-controls-sources [type=checkbox]' |> map -> it.checked = false
 
 $table = d3.select \table#main
 
@@ -86,10 +94,9 @@ format-d0 = d3.format ',f'
 
 query = ->
 
-	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
+	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)	
 
-
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-opens/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-opens/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	base = [0 to how-many-days] |> map (d) -> 
 		results |> find (.day == d) |> (-> it?.base or 0) 
@@ -109,7 +116,7 @@ query = ->
 
 	update!
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-time-spent/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-time-spent/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	row = data-rows |> find (.0 == \sessions) 
 	row.2 = [0 to how-many-days] |> map (d) -> results |> find (.day == d) |> (-> if !!it then format-d1 it.sessions/it.users else "-")
@@ -119,7 +126,7 @@ query = ->
 
 	update!
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-cards/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-cards/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	row = data-rows |> find (.0 == \interacted) 
 	row.2 = [0 to how-many-days] |> map (d) -> results |> find (._id == d) |> (-> if !!it then format-p0 it.users/users[it._id] else "-")
@@ -139,11 +146,9 @@ query = ->
 	row = data-rows |> find (.0 == \completedQuizzes) 
 	row.2 = [0 to how-many-days] |> map (d) -> results |> find (._id == d) |> (-> if !!it and !!it.quizzes then format-p0 it.eoqs/it.quizzes else "-")
 
-
 	update!
 
-
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-ratings/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-ratings/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	<[rated never remind]> |> each (field) ->
 		row = data-rows |> find (.0 == field) 
@@ -153,3 +158,13 @@ query = ->
 	update!
 
 query!
+
+(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/media-sources"
+d3.select '#main-controls-sources div' .select-all 'label' 
+	.data results
+		..enter!
+			.append "label"
+			.html -> '<input type="checkbox" value="'+it+'" checked="checked"/>' + it.replace("|", " ").trim()
+	
+
+
