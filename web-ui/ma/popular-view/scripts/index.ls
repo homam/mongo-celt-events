@@ -35,7 +35,7 @@ document.getElementById \main-controls .add-event-listener do
 $table = d3.select \table#main
 
 $table.select \thead .select \tr .select-all \td
-.data ['Course', 'Users', 'Cards', 'Flips', 'Chapters']
+.data ['Course', 'Users', 'Cards', 'Flips', 'Chapters', 'Purchased']
 	..enter!
 		.append \th
 		.text id
@@ -63,7 +63,6 @@ query = ->
 
 	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
 
-
 	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/popular-courses/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}"
 
 	data-rows := results |> map (->  
@@ -73,11 +72,19 @@ query = ->
 			* format-d1 it.cards/it.users
 			* format-d1 it.flips/it.users
 			* format-d1 it.chapters/it.users
+			* "..."
 		])
 
 	update!
 
-	console.log error
+	(err, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/purchased-for/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}"
+	
+	data-rows := data-rows |> map ->
+		it[5] = 0
+		it[5] = results[it[0]] if !!results[it[0]]
+		it
+
+	update!
 
 
 
