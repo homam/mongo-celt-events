@@ -3,7 +3,7 @@
 	promise-monad
 	to-callback
 } = require \promises-ls
-{each, map, id, find, lists-to-obj} = require \prelude-ls
+{each, map, id, find, lists-to-obj, fold, values, filter} = require \prelude-ls
 
 input-date = (name) ->
 	d3.select '#main-controls [name=' + name + ']' .node!
@@ -40,26 +40,79 @@ fresh-rows = ->
 	]
 	data-rows = data-rows |> map (-> it ++ [["..." for _ in [0 to how-many-days]]])
 
+media-source-tree =
+	containerElement: $('#sources')	
+	parentPrefix: 'i.'
+
+	create: (results)->
+		self = @
+
+		formatedData = results 
+			|> map -> it.split("|")
+			|> fold (m, v)->
+			
+				if m[v[0]] == undefined
+					m[v[0]] = 
+						text: v[0] 
+
+				
+				if v[1].length == 0
+					m[v[0]].id = "#{v[0]}|"
+					return m
+
+				if m[v[0]].children == undefined
+					m[v[0]]
+						..children = []					
+						..id = "i.#{v[0].replace(/\s+/g, '').toLowerCase()}"
+
+				m[v[0]].children.push(text: v[1], id: "#{v[0]}|#{v[1]}", icon: "")
+				
+				return m
+			, {}
+			|> values
+
+		@containerElement.jstree(
+			plugins: [
+				"wholerow"
+				"checkbox"
+			]
+			core: 
+				themes:
+					icons: false
+				data: 
+					text: "media sources",
+					id: 'i.mediasources',
+					state:
+						opened: true
+					children: formatedData
+		)
+
+
+		@containerElement.on 'ready.jstree', -> self.containerElement.jstree('select_all')
+
+	getSelectedSources: ->
+		self = @
+		selected =  @containerElement.jstree 'get_selected'
+
+		selected = filter ->
+			if it.indexOf(self.parentPrefix) != 0
+				true
+		, selected
+
+		return selected
+
 data-rows = fresh-rows!
 
 document.getElementById \main-controls .add-event-listener do 
 	\submit
 	-> 
 		data-rows := fresh-rows!
-		sources := (document.querySelectorAll '#main-controls-sources [type=checkbox]:checked' |> map (.value)).join!
+		sources := media-source-tree.getSelectedSources!.join!
 		update!
 		query!
 		it.preventDefault!
 		return false
 	true
-
-document.getElementById \select-all .add-event-listener do 
-	\click
-	-> document.querySelectorAll '#main-controls-sources [type=checkbox]' |> map -> it.checked = true
-
-document.getElementById \deselect-all .add-event-listener do 
-	\click
-	-> document.querySelectorAll '#main-controls-sources [type=checkbox]' |> map -> it.checked = false
 
 $table = d3.select \table#main
 
@@ -159,12 +212,17 @@ query = ->
 
 query!
 
+
 (error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/media-sources"
+
+media-source-tree.create(results)!
+
 d3.select '#main-controls-sources div' .select-all 'label' 
 	.data results
 		..enter!
 			.append "label"
 			.html -> '<input type="checkbox" value="'+it+'" checked="checked"/>' + it.replace("|", " ").trim()
+		..exit!.remove!
 	
 
 
