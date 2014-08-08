@@ -43,9 +43,10 @@ $table.select \thead .select \tr .select-all \td
 
 update = ->
 	$table.select \tbody .select-all \tr
-	.data data-rows
+	.data data-rows 
+	.style "background-color", (-> if parseFloat(it[5]) > 0 then "yellow" else "")
 		..enter!
-			.append \tr
+			.append \tr			
 		..select-all \td
 			..data id
 				..enter!
@@ -77,8 +78,8 @@ query = ->
 
 	update!
 
-	(err, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/purchased-for/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}"
-	
+	(err, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/purchased-for/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}"		
+
 	data-rows := data-rows |> map ->
 		it[5] = 0
 		it[5] = results[it[0]] if !!results[it[0]]

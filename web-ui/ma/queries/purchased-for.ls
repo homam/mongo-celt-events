@@ -4,6 +4,7 @@
         new-promise
         bindP
         serial-map
+        parallel-map
         fmapP
     }    
 } = require \async-ls
@@ -69,7 +70,7 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
     (paid-users db, query-from, query-to, countries, sample-from, sample-to)  
         |> fmapP -> 
             it 
-                |> serial-map ({_id, timeDelta})-> purchased-for db, _id, timeDelta
+                |> parallel-map ({_id, timeDelta})-> purchased-for db, _id, timeDelta
                 |> fmapP ->
                     it 
                         |> map ({adId, courseKey})->                             
