@@ -87,10 +87,6 @@ app.get do
 	"/query/latest-users"
 	query-and-result (db, req, res) -> (require \./queries/latest-users) db, parseInt req.query[\limit]
 
-app.get do
-	"/query/media-sources"
-	query-and-result (db, req, res) -> (require \./queries/media-sources) db
-
 
 [
 	* \daily-chapters, \./queries/daily-chapters
@@ -102,10 +98,11 @@ app.get do
 	* \daily-depth, \./queries/daily-depth
 	* \daily-eocs, \./queries/daily-eocs
 	* \popular-courses, \./queries/popular-courses
-	* \daily-push, \./queries/daily-push
+	* \daily-push, \./queries/daily-push 
 	* \daily-active-users, \./queries/daily-active-users
 	* \purchased-for, \./queries/purchased-for
 	* \heat-map, \./queries/heat-map
+	* \media-sources, \./queries/media-sources
 ] |> each ([req-path, module-path]) ->
 	app.get do
 		"/query/#req-path/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:sources?"

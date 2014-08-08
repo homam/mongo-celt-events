@@ -11,7 +11,7 @@ input-date = (name) ->
 input-date \sampleFrom .value = "2014-07-27"
 input-date \sampleTo .value = moment!.add \days, 1 .format \YYYY-MM-DD\
 
-input-date \queryFrom .value = "2014-07-27"
+input-date \queryFrom .value = moment!.add \days, -8 .format \YYYY-MM-DD\
 input-date \queryTo .value = moment!.add \days, 1 .format \YYYY-MM-DD\
 
 
@@ -60,26 +60,37 @@ update!
 format-p1 = d3.format \.1%
 format-t = (timestamp)-> moment(new Date(timestamp)).format("DD-MM")
 
-query = ->
+fill = (func)->
+	[start, end] = <[queryFrom queryTo]> |> map input-date >> (.valueAsDate.getTime!)
+	[start to end by 86400000] |> map func
+
+query = ->	
 
 	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
+	
+	data-cols := [""] ++ fill format-t
 
-	(error, daily-users) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-active-users/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}"
+	data-rows := ["Active users", "Viewed payment page", "Tapped buy button", "Purchased"] |> map -> [it] ++ (fill -> "...")
+
+	update!
+
 	(error, daily-subscriptions) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-subscriptions/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}"
 
 	pretty = (m)-> JSON.stringify(m, null, 4)
 
 	data-rows := [
-		["Active users"] ++ (daily-users |> map (.count))
+		["Active users"] ++ (daily-subscriptions |> map -> "...")
 		["Viewed Payment page"] ++ (daily-subscriptions |> map (.subscriptionPageViews))
 		["Tapped Buy Button"] ++ (daily-subscriptions |> map (.buyTries))
 		["Purchased"] ++ (daily-subscriptions |> map (.purchases))		
-	]
+	]	
 
-	[queryFrom, queryTo] = <[queryFrom queryTo]> |> map input-date >> (.valueAsDate.getTime!)
+	update!
+
+	(error, daily-users) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-active-users/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}"
+
+	data-rows[0] = ["Active users"] ++ (daily-users |> map (.count))
 	
-	data-cols := [""] ++ ([queryFrom to queryTo by 86400000] |> map format-t)	
-
 	update!
 
 query!

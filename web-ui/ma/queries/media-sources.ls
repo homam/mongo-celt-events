@@ -6,13 +6,17 @@
 } = require \async-ls
 {map, sort, sort-by, mean, filter, first, group-by, concat-map, foldl, maximum} = require \prelude-ls
 
-query = (db) ->
+query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null) ->
 	(success, reject) <- new-promise	
 	(err, result) <- db.IOSUsers.aggregate do 
 		[
 			{
-				$project:
-					source: $concat: [$ifNull: ["$appsFlyer.media_source", "others"], "|", $ifNull: ["$appsFlyer.adgroup", ""]]
+				$match:
+					country: $in: countries
+			}
+			{
+				$project:					
+					source: $concat: [$ifNull: ["$appsFlyer.media_source", "others"], "|", $ifNull: ["$appsFlyer.adgroup", ""]]					
 			}
 			{
 				$group:

@@ -213,7 +213,9 @@ query = ->
 query!
 
 
-(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/media-sources"
+[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
+
+(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/media-sources/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 media-source-tree.create(results)!
 
