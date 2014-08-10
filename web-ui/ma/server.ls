@@ -103,6 +103,7 @@ app.get do
 	* \purchased-for, \./queries/purchased-for
 	* \heat-map, \./queries/heat-map
 	* \media-sources, \./queries/media-sources
+	* \purchased-day, \./queries/purchased-day
 ] |> each ([req-path, module-path]) ->
 	app.get do
 		"/query/#req-path/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:sources?"
