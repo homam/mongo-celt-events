@@ -7,6 +7,7 @@
 	}
 } = require \async-ls
 {map, sort, sort-by, find, filter, first, group-by, concat-map, foldl} = require \prelude-ls
+utils = require "./utils"
 
 courses = require \../data/courses.json
 
@@ -14,13 +15,15 @@ one-hour = 1000*60*60
 one-day =  one-hour*24
 
 
-query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null) ->
+query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->
 	(success, reject) <- new-promise
+	(err, devices) <- utils.get-devices-from-media-sources db, sources
+
 	(err, res) <- db.IOSEvents.aggregate do
 		[
 			{
 				$match:
-					"device.adId": $exists: 1
+					"device.adId": {$exists: 1} <<< if !!devices then $in: devices else {}
 					"event.name": "transition"
 					"event.toView.name": "Flashcard" # , "EOC", "Question", "EOQ"]
 					"event.toView.chapterIndex": $exists: 1
