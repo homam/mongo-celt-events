@@ -48,8 +48,6 @@ $ ->
 						children: formatedData
 			)
 
-
-			console.log formatedData
 			@containerElement.on 'ready.jstree', -> self.containerElement.jstree('select_all')
 
 		getSelectedSources: ->

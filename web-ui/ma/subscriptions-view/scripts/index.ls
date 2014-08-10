@@ -20,11 +20,14 @@ how-many-days = 30
 data-cols = []
 data-rows = []
 
+sources = "-"
+
 document.getElementById \main-controls .add-event-listener do 
 	\submit
 	-> 
 		data-cols := []
 		data-rows := []
+		sources := media-source-tree.getSelectedSources!.join!
 		update!
 		query!
 		it.preventDefault!
@@ -42,7 +45,7 @@ update = ->
 			.text id
 		..exit!.remove!
 	
-	console.log JSON.stringify(data-rows, null, 4)
+	# console.log JSON.stringify(data-rows, null, 4)
 
 	$table.select \tbody .select-all \tr
 	.data data-rows
@@ -74,7 +77,7 @@ query = ->
 
 	update!
 
-	(error, daily-subscriptions) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-subscriptions/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}"
+	(error, daily-subscriptions) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-subscriptions/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	pretty = (m)-> JSON.stringify(m, null, 4)
 
@@ -87,10 +90,16 @@ query = ->
 
 	update!
 
-	(error, daily-users) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-active-users/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}"
+	(error, daily-users) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-active-users/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	data-rows[0] = ["Active users"] ++ (daily-users |> map (.count))
 	
 	update!
 
 query!
+
+[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
+
+(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/media-sources/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{sources}"
+
+media-source-tree.create(results)!

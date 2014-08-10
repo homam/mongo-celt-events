@@ -5,6 +5,7 @@
     }
 } = require \async-ls
 {map, sort, sort-by, mean, fold, find-index, reverse} = require \prelude-ls
+utils = require "./utils"
 
 
 one-hour = 1000*60*60
@@ -21,8 +22,11 @@ fill-in-the-gaps = (query-from, query-to, days) -->
     ),  empty-list
     
 
-query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null) ->   
+query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->
+    
     (success, reject) <- new-promise
+
+    (err, devices) <- utils.get-devices-from-media-sources db, sources
     
     query-from -= (new Date()).getTimezoneOffset() * 60000
     query-to -= (new Date()).getTimezoneOffset() * 60000
@@ -33,6 +37,7 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
                 $match: 
                     country: $in: countries
                     serverTime: $gte: query-from, $lte: query-to
+                    "device.adId": {$exists: 1} <<< if !!devices then $in: devices else {}
             }                        
             {
                 $project:
