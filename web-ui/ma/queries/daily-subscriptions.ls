@@ -56,7 +56,7 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
                         day: "$day" 
                         adId: "$adId"
                     subscriptionPageViews: $sum: {$cond: [$eq: ["$event.toView.name", "Subscription"], 1, 0]}
-                    purchases: $sum: {$cond: [$eq: ["$event.name", "IAP-Purchased"], 1, 0]} 
+                    purchases: $sum: {$cond: [$and: [{$eq: ["$event.name", "IAP-PurchaseVerified"]}, {$eq: ["$event.valid", true]}], 1, 0]} 
                     buyTries: $sum: {$cond: [$eq: ["$event.name", "IAP-BuyTry"], 1, 0]} 
             }
             {
