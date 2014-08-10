@@ -21,7 +21,6 @@ sources = "-"
 
 fresh-rows = ->
 	data-rows = [
-		[\userSubscription, 'User Subscription']
 		[\base, 'Base']
 		[\used, 'Used the App']
 		[\interacted, 'Visited any Course']
@@ -38,6 +37,7 @@ fresh-rows = ->
 		[\rated, 'Rated']
 		[\remind, 'Remind me later']
 		[\never, 'Never ask again']
+		[\userSubscription, 'Subscribed']
 	]
 	data-rows = data-rows |> map (-> it ++ [["..." for _ in [0 to how-many-days]]])
 
@@ -88,12 +88,6 @@ format-d0 = d3.format ',f'
 query = ->
 
 	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)	
-
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/purchased-day/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
-
-	<[userSubscription]> |> each (field) ->
-		row = data-rows |> find (.0 == field) 
-		row.2 = [0 to how-many-days] |> map (d) -> results |> find (._id == d) |> (-> if !!it then format-d0 it[field] else 0)
 
 	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-opens/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
 
@@ -153,6 +147,12 @@ query = ->
 		row = data-rows |> find (.0 == field) 
 		row.2 = [0 to how-many-days] |> map (d) -> results |> find (._id == d) |> (-> if !!it then format-d0 it[field] else "-")
 
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/purchased-day/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
+
+	<[userSubscription]> |> each (field) ->
+		row = data-rows |> find (.0 == field) 
+		row.2 = [0 to how-many-days] |> map (d) -> results |> find (._id == d) |> (-> if !!it then format-d0 it[field] else 0)
+		
 	update!
 
 query!
