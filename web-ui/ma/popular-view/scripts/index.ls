@@ -18,6 +18,8 @@ input-date \queryTo .value = moment!.add \days, 1 .format \YYYY-MM-DD\
 how-many-days = 30
 maximum-purchase-count = 0
 
+sources = "-"
+
 fresh-rows = ->
 	data-rows = []
 
@@ -27,6 +29,7 @@ document.getElementById \main-controls .add-event-listener do
 	\submit
 	-> 
 		data-rows := fresh-rows!
+		sources := media-source-tree.getSelectedSources!.join!
 		update!
 		query!
 		it.preventDefault!
@@ -79,7 +82,7 @@ query = ->
 
 	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/popular-courses/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/popular-courses/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	data-rows := results |> map (->  
 		[
@@ -93,7 +96,7 @@ query = ->
 
 	update!
 
-	(err, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/purchased-for/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}"		
+	(err, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/purchased-for/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{sources}"		
 
 	maximum-purchase-count := results
 		|> values
@@ -109,3 +112,9 @@ query = ->
 
 
 query!
+
+[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
+
+(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/media-sources/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{sources}"
+
+media-source-tree.create(results)!
