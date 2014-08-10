@@ -89,13 +89,13 @@ query = ->
 
 	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)	
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/purchased-day/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{sources}"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/purchased-day/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	<[userSubscription]> |> each (field) ->
 		row = data-rows |> find (.0 == field) 
 		row.2 = [0 to how-many-days] |> map (d) -> results |> find (._id == d) |> (-> if !!it then format-d0 it[field] else 0)
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-opens/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{sources}"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-opens/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	base = [0 to how-many-days] |> map (d) -> 
 		results |> find (.day == d) |> (-> it?.base or 0) 
@@ -115,7 +115,7 @@ query = ->
 
 	update!
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-time-spent/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{sources}"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-time-spent/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	row = data-rows |> find (.0 == \sessions) 
 	row.2 = [0 to how-many-days] |> map (d) -> results |> find (.day == d) |> (-> if !!it then format-d1 it.sessions/it.users else "-")
@@ -125,7 +125,7 @@ query = ->
 
 	update!
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-cards/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{sources}"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-cards/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	row = data-rows |> find (.0 == \interacted) 
 	row.2 = [0 to how-many-days] |> map (d) -> results |> find (._id == d) |> (-> if !!it then format-p0 it.users/users[it._id] else "-")
@@ -147,7 +147,7 @@ query = ->
 
 	update!
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-ratings/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{sources}"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-ratings/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	<[rated never remind]> |> each (field) ->
 		row = data-rows |> find (.0 == field) 
@@ -160,7 +160,7 @@ query!
 
 [sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
 
-(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/media-sources/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{sources}"
+(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/media-sources/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 media-source-tree.create(results)!
 
