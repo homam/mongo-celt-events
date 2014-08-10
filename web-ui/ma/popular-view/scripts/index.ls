@@ -3,7 +3,7 @@
 	promise-monad
 	to-callback
 } = require \promises-ls
-{each, map, id, find, lists-to-obj} = require \prelude-ls
+{each, map, id, find, lists-to-obj, values, maximum} = require \prelude-ls
 
 input-date = (name) ->
 	d3.select '#main-controls [name=' + name + ']' .node!
@@ -16,6 +16,7 @@ input-date \queryTo .value = moment!.add \days, 1 .format \YYYY-MM-DD\
 
 
 how-many-days = 30
+maximum-purchase-count = 0
 
 fresh-rows = ->
 	data-rows = []
@@ -44,7 +45,21 @@ $table.select \thead .select \tr .select-all \td
 update = ->
 	$table.select \tbody .select-all \tr
 	.data data-rows 
-	.style "background-color", (-> if parseFloat(it[5]) > 0 then "yellow" else "")
+	.style "background-color", (-> 
+		
+		purchase-count = parseFloat it[5]
+
+		p = purchase-count / maximum-purchase-count
+		alpha = 0.2 + p * 0.8
+		red-channel = Math.floor 255 * (1 - p)
+
+		if purchase-count > 0 
+			return "rgba(#{red-channel}, 255, 0, #{alpha})" 
+
+		else 
+			return ""
+
+	)
 		..enter!
 			.append \tr			
 		..select-all \td
@@ -80,6 +95,10 @@ query = ->
 
 	(err, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/purchased-for/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}"		
 
+	maximum-purchase-count := results
+		|> values
+		|> maximum
+		
 	data-rows := data-rows |> map ->
 		it[5] = 0
 		it[5] = results[it[0]] if !!results[it[0]]
