@@ -11,7 +11,7 @@ input-date = (name) ->
 input-date \sampleFrom .value = "2014-07-27"
 input-date \sampleTo .value = moment!.add \days, 1 .format \YYYY-MM-DD\
 
-input-date \queryFrom .value = moment!.add \days, -8 .format \YYYY-MM-DD\
+input-date \queryFrom .value = moment!.add \days, -14 .format \YYYY-MM-DD\
 input-date \queryTo .value = moment!.add \days, 1 .format \YYYY-MM-DD\
 
 
