@@ -8,10 +8,10 @@
 input-date = (name) ->
 	d3.select '#main-controls [name=' + name + ']' .node!
 
-input-date \sampleFrom .value = "2014-07-27"
+input-date \sampleFrom .value = "2014-07-23"
 input-date \sampleTo .value = moment!.add \days, 1 .format \YYYY-MM-DD\
 
-input-date \queryFrom .value = moment!.add \days, -14 .format \YYYY-MM-DD\
+input-date \queryFrom .value = "2014-07-23"
 input-date \queryTo .value = moment!.add \days, 1 .format \YYYY-MM-DD\
 
 how-many-days = 30
@@ -70,13 +70,16 @@ query = ->
 
 	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
 		
-	(error, flips) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/n-flips/#{queryFrom}/#{queryTo}/CA,IE,US/10"	
+	number-of-flips = (parseInt (document.getElementById "flips").value)	
 
-	data-cols := [""] ++ flips |> map (._id)
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/n-flips/#{queryFrom}/#{queryTo}/CA,IE,US/#{number-of-flips}/#{sampleFrom}/#{sampleTo}/#{sources}"	
+
+	data-cols := [""] ++ results |> map (._id)
 
 	data-rows := [
-		["n or more flips"] ++ (flips |> map (.gt))
-		["less than n flips"] ++ (flips |> map (.lt))
+		["#{number-of-flips} or more flips"] ++ (results |> map (.gt))
+		["less than #{number-of-flips} flips"] ++ (results |> map (.lt))
+		["%"] ++ (results |> map -> Math.floor(10000 * it.gt / (it.gt + it.lt)) / 100)
 	]	
 
 	update!

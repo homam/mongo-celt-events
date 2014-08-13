@@ -45,7 +45,7 @@ query = (db, query-from, query-to, countries = null, flips = 10, sample-from = n
                     event: 1
                     sameCard: $eq: ["$event.fromView.cardIndex", "$event.toView.cardIndex"]
                     timeDelta: 1
-                    installationTime: $subtract: ["$creationTimestamp", "$timeDelta"]
+                    installationTime: $subtract: ["$serverTime", "$timeDelta"]
             }
         ] ++ (
             if !!sample-to && !!sample-from        
