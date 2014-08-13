@@ -1,0 +1,66 @@
+<html>
+	<head>
+		<title>flips</title>
+		<meta name="viewport" content="width=device-width, user-scalable=yes">
+
+		<script src="/libs/prelude-browser.js"></script>
+		<script src="/libs/d3.js"></script>
+		<script src="/libs/promises-browser-all.js"></script>
+		<script src="/libs/moment.js"></script>
+		<script src="/graphs/table.js"></script>
+		<script src="//code.jquery.com/jquery-2.1.0.min.js"></script>
+  		<script src="//cdnjs.cloudflare.com/ajax/libs/jstree/3.0.2/jstree.min.js"></script>
+  		<script src="/libs/media-source-tree/media-source-tree.js"></script>
+		<link rel="Stylesheet" type="text/css" href="/flips/styles/main-controls.css" />
+		<link rel="Stylesheet" type="text/css" href="http://static.jstree.com/3.0.2/assets/dist/themes/default/style.min.css" />
+		<style type="text/css">
+			
+		</style>
+	</head>
+	<body>
+		<h1>N Flips</h1>
+		<form id="main-controls">
+			<div class="controls">			
+				<div id="main-controls-sample">
+					<h5>Sample:</h5>
+					<div class="controls">
+						<div>
+							<label for="sampleFrom">From:</label> <input type="date" name="sampleFrom">
+						</div>
+						<div>
+							<label for="sampleTo">To:</label> <input type="date" name="sampleTo">
+						</div>
+					</div>
+				</div>	
+				<div id="main-controls-query">
+					<h5>Query:</h5>
+					<div class="controls">
+						<div>
+							<label for="queryFrom">From:</label> <input type="date" name="queryFrom">
+						</div>
+						<div>
+							<label for="queryTo">To:</label> <input type="date" name="queryTo">
+						</div>
+					</div>
+				</div>
+				<div id="main-controls-sources">
+					<h5>Sources:</h5>
+					<div id="sources">
+					</div>
+				</div>
+			</div>
+			<button type="submit">
+				Query
+			</button>
+		</form>
+		<table id="main">
+			<thead><tr></tr></thead>
+			<tbody></tbody>
+		</table>
+		
+
+		<script src="/flips/scripts/index.js"></script>
+
+		<% include ../footer.html %>   
+	</body>
+</html>

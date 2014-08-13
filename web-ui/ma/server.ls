@@ -88,6 +88,20 @@ app.get do
 	query-and-result (db, req, res) -> (require \./queries/latest-users) db, parseInt req.query[\limit]
 
 
+app.get do 
+	"/query/n-flips/:durationFrom/:durationTo/:countries?/:flips?/:sampleFrom?/:sampleTo?/:sources?"
+	query-and-result (db, req, res) -> 
+		params = req.params
+		(require \./queries/n-flips) do
+			db
+			to-unix-time params.durationFrom
+			to-unix-time params.durationTo
+			to-country-array params.countries
+			params.flips
+			to-unix-time params.sampleFrom
+			to-unix-time params.sampleTo
+			to-array params.sources			
+
 [
 	* \daily-chapters, \./queries/daily-chapters
 	* \daily-cards, \./queries/daily-cards-flips-chapters-courses
@@ -190,6 +204,7 @@ app.post do
 	* \/funnel, \funnel
 	* \/subscriptions, \subscriptions
 	* \/push, \push
+	* \/flips, \flips
 ] |> each ([path, dir]) ->
 
 	app.use "/#dir/scripts/", express.static "#{dir}-view/scripts"

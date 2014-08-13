@@ -54,7 +54,7 @@ update = ->
 			..data id
 				..enter!
 					.append \td				
-				..text (-> if !!it then it else "-")
+				..text id
 		..exit!.remove!
 
 update!
@@ -69,30 +69,16 @@ fill = (func)->
 query = ->	
 
 	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
-	
-	data-cols := [""] ++ fill format-t
+		
+	(error, flips) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/n-flips/#{queryFrom}/#{queryTo}/CA,IE,US/10"	
 
-	data-rows := ["Active users", "Viewed payment page", "Tapped buy button", "Purchased"] |> map -> [it] ++ (fill -> "...")
-
-	update!
-
-	(error, daily-subscriptions) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-subscriptions/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
-
-	pretty = (m)-> JSON.stringify(m, null, 4)
+	data-cols := [""] ++ flips |> map (._id)
 
 	data-rows := [
-		["Active users"] ++ (daily-subscriptions |> map -> "...")
-		["Viewed Payment page"] ++ (daily-subscriptions |> map (.subscriptionPageViews))
-		["Tapped Buy Button"] ++ (daily-subscriptions |> map (.buyTries))
-		["Purchased"] ++ (daily-subscriptions |> map (.purchases))		
+		["n or more flips"] ++ (flips |> map (.gt))
+		["less than n flips"] ++ (flips |> map (.lt))
 	]	
 
-	update!
-
-	(error, daily-users) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-active-users/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
-
-	data-rows[0] = ["Active users"] ++ (daily-users |> map (.count))
-	
 	update!
 
 query!
