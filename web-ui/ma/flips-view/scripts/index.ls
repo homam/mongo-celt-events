@@ -71,7 +71,7 @@ query = ->
 	
 	sources = ["apploop_int","appnexus_int","Facebook Ads","googleadwords_int","iAd,tapjoy_int"]
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/n-flips/CA,IE,US/#{number-of-flips}/#{hours}/#{sampleFrom}/#{sampleTo}/#{sources}"	
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/qualified-leads/CA,IE,US/#{number-of-flips}/#{hours}/#{sampleFrom}/#{sampleTo}/#{sources}"	
 
 	flip-text = pluralize "flip", number-of-flips
 	hour-text = pluralize "hour", hours

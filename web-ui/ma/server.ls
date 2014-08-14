@@ -19,7 +19,6 @@ connect-db = config.connect
 {port} = (process.argv.slice(2) |> require \minimist)
 port = port or config.port
 
-
 app = express!
 app.use body-parser.urlencoded extended: true
 app.set \port, port
@@ -30,8 +29,6 @@ app.set 'view engine', \ejs
 app.use \/libs, express.static \../public/libs
 app.use \/graphs, express.static \../public/graphs
 app.use \/data, express.static \../public/data
-
-
 
 write-error = (res, error) ->
 	console.log \error, error
@@ -89,10 +86,10 @@ app.get do
 
 
 app.get do 
-	"/query/n-flips/:countries/:flips/:hours/:sampleFrom/:sampleTo/:sources"
+	"/query/qualified-leads/:countries/:flips/:hours/:sampleFrom/:sampleTo/:sources"
 	query-and-result (db, req, res) -> 
 		params = req.params
-		(require \./queries/n-flips) do
+		(require \./queries/qualified-leads) do
 			db
 			to-country-array params.countries
 			parseInt params.flips
