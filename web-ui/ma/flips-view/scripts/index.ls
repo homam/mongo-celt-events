@@ -56,9 +56,6 @@ update = ->
 
 update!
 
-format-p1 = d3.format \.1%
-format-t = (timestamp)-> moment(new Date(timestamp)).format("DD-MM")
-
 pluralize = (word, count)->
 	if count > 1 then "#{word}s" else word
 
@@ -81,7 +78,8 @@ query = ->
 
 	data-rows := results 
 		|> map ({_id, lt, gt})->
-			p = gt / (lt + gt)
+			d = lt + gt
+			p = if d == 0 then "-" else gt / d
 			[_id, lt + gt, lt, gt, Math.floor(p * 10000) / 100]
 
 	update!
