@@ -89,15 +89,14 @@ app.get do
 
 
 app.get do 
-	"/query/n-flips/:durationFrom/:durationTo/:countries?/:flips?/:sampleFrom?/:sampleTo?/:sources?"
+	"/query/n-flips/:countries/:flips/:hours/:sampleFrom/:sampleTo/:sources"
 	query-and-result (db, req, res) -> 
 		params = req.params
 		(require \./queries/n-flips) do
 			db
-			to-unix-time params.durationFrom
-			to-unix-time params.durationTo
 			to-country-array params.countries
-			params.flips
+			parseInt params.flips
+			parseInt params.hours
 			to-unix-time params.sampleFrom
 			to-unix-time params.sampleTo
 			to-array params.sources			

@@ -11,9 +11,6 @@ input-date = (name) ->
 input-date \sampleFrom .value = "2014-07-23"
 input-date \sampleTo .value = moment!.add \days, 1 .format \YYYY-MM-DD\
 
-input-date \queryFrom .value = "2014-07-23"
-input-date \queryTo .value = moment!.add \days, 1 .format \YYYY-MM-DD\
-
 how-many-days = 30
 
 data-cols = []
@@ -51,7 +48,7 @@ update = ->
 		..enter!
 			.append \tr		
 		..select-all \td
-			..data id
+			..data id 
 				..enter!
 					.append \td				
 				..text id
@@ -62,32 +59,31 @@ update!
 format-p1 = d3.format \.1%
 format-t = (timestamp)-> moment(new Date(timestamp)).format("DD-MM")
 
-fill = (func)->
-	[start, end] = <[queryFrom queryTo]> |> map input-date >> (.valueAsDate.getTime!)
-	[start to end by 86400000] |> map func
+pluralize = (word, count)->
+	if count > 1 then "#{word}s" else word
 
 query = ->	
 
-	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
+	[sampleFrom, sampleTo] = <[sampleFrom sampleTo]> |> map input-date >> (.value)
 		
-	number-of-flips = (parseInt (document.getElementById "flips").value)	
+	number-of-flips = parseInt (document.getElementById "flips").value
+	hours = parseInt (document.getElementById "hours").value
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/n-flips/#{queryFrom}/#{queryTo}/CA,IE,US/#{number-of-flips}/#{sampleFrom}/#{sampleTo}/#{sources}"	
+	
+	sources = ["apploop_int","appnexus_int","Facebook Ads","googleadwords_int","iAd,tapjoy_int"]
 
-	data-cols := [""] ++ results |> map (._id)
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/n-flips/CA,IE,US/#{number-of-flips}/#{hours}/#{sampleFrom}/#{sampleTo}/#{sources}"	
 
-	data-rows := [
-		["#{number-of-flips} or more flips"] ++ (results |> map (.gt))
-		["less than #{number-of-flips} flips"] ++ (results |> map (.lt))
-		["%"] ++ (results |> map -> Math.floor(10000 * it.gt / (it.gt + it.lt)) / 100)
-	]	
+	flip-text = pluralize "flip", number-of-flips
+	hour-text = pluralize "hour", hours
+
+	data-cols := ["Sources", "Installs", "Less than #{number-of-flips} #{flip-text} in #{hours} #{hour-text}", "#{number-of-flips} or more #{flip-text} in #{hours} #{hour-text}", "%"]
+
+	data-rows := results 
+		|> map ({_id, lt, gt})->
+			p = gt / (lt + gt)
+			[_id, lt + gt, lt, gt, Math.floor(p * 10000) / 100]
 
 	update!
 
 query!
-
-[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
-
-(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/media-sources/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{sources}"
-
-media-source-tree.create(results)!
