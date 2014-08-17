@@ -95,43 +95,38 @@ query = ->
 	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)	
 
 
-	base = null
-	users = null
-	(error, results) <- to-callback <| 
-		(from-error-value-callback d3.json, d3) "/query/daily-opens/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
-			|> promise-monad.fmap (results) ->
+	(results) <- (`promise-monad.ffmap`) (from-error-value-callback d3.json, d3) "/query/daily-opens/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
 
-				base := [0 to how-many-days] |> map (d) -> 
-					results |> find (.day == d) |> (-> it?.base or 0) 
-				base := [0 to how-many-days] `lists-to-obj` base
+	base = [0 to how-many-days] |> map (d) -> 
+		results |> find (.day == d) |> (-> it?.base or 0) 
+	base := [0 to how-many-days] `lists-to-obj` base
 
 
-				users := [0 to how-many-days] |> map (d) -> 
-					results |> find (.day == d) |> (-> it?.users or 0) 
-				users := [0 to how-many-days] `lists-to-obj` users
+	users = [0 to how-many-days] |> map (d) -> 
+		results |> find (.day == d) |> (-> it?.users or 0) 
+	users := [0 to how-many-days] `lists-to-obj` users
 
 
-				data-rows := update-data-rows data-rows, \base, results, (.day), -> if !!it then it.base else 0
-				data-rows := update-data-rows data-rows, \used, results, (.day), -> if !!it and it.base > 0 then format-p1 it.users/it.base else "-"
+	data-rows := update-data-rows data-rows, \base, results, (.day), -> if !!it then it.base else 0
+	data-rows := update-data-rows data-rows, \used, results, (.day), -> if !!it and it.base > 0 then format-p1 it.users/it.base else "-"
 
 	update!
 
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-time-spent/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
-
+	(results) <- (`promise-monad.ffmap`) (from-error-value-callback d3.json, d3) "/query/daily-time-spent/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
+	
 	data-rows := update-data-rows data-rows, \sessions, results, (.day), -> if !!it then format-d1 it.sessions/it.users else "-"
 	data-rows := update-data-rows data-rows, \time, results, (.day), -> if !!it then format-d1 (it.avgDailyDuration/60) else "-"
 
 	update!
 
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-cards/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
+	(results) <- (`promise-monad.ffmap`) (from-error-value-callback d3.json, d3) "/query/daily-cards/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	data-rows := update-data-rows data-rows, \interacted, results, (._id), -> if !!it then format-p0 it.users/users[it._id] else "-"
 
 	<[flips backFlips chapters courses]> |> each (field) ->
 		data-rows := update-data-rows data-rows, field, results, (._id), -> if !!it then format-d1 it[field]/it.users else "-"
-
 
 	[
 		* \eoc, -> if !!it then format-p0 it.eocs/it.chapters else "-"
@@ -143,7 +138,7 @@ query = ->
 	update!
 
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-ratings/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
+	(results) <- (`promise-monad.ffmap`) (from-error-value-callback d3.json, d3) "/query/daily-ratings/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	<[rated never remind]> |> each (field) ->
 		data-rows := update-data-rows data-rows, field, results, (._id), -> if !!it then format-d0 it[field] else "-"
@@ -151,12 +146,16 @@ query = ->
 	update!
 
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/purchased-day/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
+	(results) <- (`promise-monad.ffmap`) (from-error-value-callback d3.json, d3) "/query/purchased-day/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	<[userSubscription]> |> each (field) ->
 		data-rows := update-data-rows data-rows, field, results, (._id), -> if !!it then format-d0 it[field] else 0
 		
 	update!
+
+
+	|> to-callback (err, res) -> ;
+
 
 query!
 
@@ -165,7 +164,7 @@ query!
 
 (error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/media-sources/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
 
-media-source-tree.create(results)!
+media-source-tree.create(results)
 
 d3.select '#main-controls-sources div' .select-all 'label' 
 	.data results
