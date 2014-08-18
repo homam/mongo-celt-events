@@ -114,46 +114,39 @@ query = ->
 
 	update!
 
+	(results) <- (`promise-monad.bind`) parallel-sequence [
+		((from-error-value-callback d3.json, d3) "/query/daily-time-spent/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) -> 
+			data-rows := update-data-rows data-rows, \sessions, results, (.day), -> if !!it then format-d1 it.sessions/it.users else "-"
+			data-rows := update-data-rows data-rows, \time, results, (.day), -> if !!it then format-d1 (it.avgDailyDuration/60) else "-"
+			update!
 
-	(results) <- (`promise-monad.bind`) (from-error-value-callback d3.json, d3) "/query/daily-time-spent/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
-	
-	data-rows := update-data-rows data-rows, \sessions, results, (.day), -> if !!it then format-d1 it.sessions/it.users else "-"
-	data-rows := update-data-rows data-rows, \time, results, (.day), -> if !!it then format-d1 (it.avgDailyDuration/60) else "-"
+		((from-error-value-callback d3.json, d3) "/query/daily-cards/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->
+			data-rows := update-data-rows data-rows, \interacted, results, (._id), -> if !!it then format-p0 it.users/users[it._id] else "-"
 
-	update!
+			<[flips backFlips chapters courses]> |> each (field) ->
+				data-rows := update-data-rows data-rows, field, results, (._id), -> if !!it then format-d1 it[field]/it.users else "-"
 
+			[
+				* \eoc, -> if !!it then format-p0 it.eocs/it.chapters else "-"
+				* \usersStartedQuiz, -> if !!it then format-p0 it.usersStartedQuiz/users[it._id] else "-"
+				* \completedQuizzes, -> if !!it and !!it.quizzes then format-p0 it.eoqs/it.quizzes else "-"
+			] |> each ([field, formatter]) -> 
+				data-rows := update-data-rows data-rows, field, results, (._id), formatter
 
-	(results) <- (`promise-monad.bind`) (from-error-value-callback d3.json, d3) "/query/daily-cards/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
+			update!
 
-	data-rows := update-data-rows data-rows, \interacted, results, (._id), -> if !!it then format-p0 it.users/users[it._id] else "-"
+		((from-error-value-callback d3.json, d3) "/query/daily-ratings/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->
+			<[rated never remind]> |> each (field) ->
+				data-rows := update-data-rows data-rows, field, results, (._id), -> if !!it then format-d0 it[field] else "-"
 
-	<[flips backFlips chapters courses]> |> each (field) ->
-		data-rows := update-data-rows data-rows, field, results, (._id), -> if !!it then format-d1 it[field]/it.users else "-"
+			update!
 
-	[
-		* \eoc, -> if !!it then format-p0 it.eocs/it.chapters else "-"
-		* \usersStartedQuiz, -> if !!it then format-p0 it.usersStartedQuiz/users[it._id] else "-"
-		* \completedQuizzes, -> if !!it and !!it.quizzes then format-p0 it.eoqs/it.quizzes else "-"
-	] |> each ([field, formatter]) -> 
-		data-rows := update-data-rows data-rows, field, results, (._id), formatter
-
-	update!
-
-
-	(results) <- (`promise-monad.bind`) (from-error-value-callback d3.json, d3) "/query/daily-ratings/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
-
-	<[rated never remind]> |> each (field) ->
-		data-rows := update-data-rows data-rows, field, results, (._id), -> if !!it then format-d0 it[field] else "-"
-
-	update!
-
-
-	(results) <- (`promise-monad.bind`) (from-error-value-callback d3.json, d3) "/query/purchased-day/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
-
-	<[userSubscription]> |> each (field) ->
-		data-rows := update-data-rows data-rows, field, results, (._id), -> if !!it then format-d0 it[field] else 0
-		
-	update!
+		((from-error-value-callback d3.json, d3) "/query/purchased-day/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->
+			<[userSubscription]> |> each (field) ->
+				data-rows := update-data-rows data-rows, field, results, (._id), -> if !!it then format-d0 it[field] else 0
+				
+			update!
+	]
 
 
 populate-sources = ->
