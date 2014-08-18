@@ -6,13 +6,13 @@
 } = require \async-ls
 {map, sort, sort-by, mean, filter, first, group-by, concat-map, foldl, maximum} = require \prelude-ls
 
-query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null) ->
+query = (db, countries = null) ->
 	(success, reject) <- new-promise	
 	(err, result) <- db.IOSUsers.aggregate do 
 		[
 			{
 				$match:
-					country: $in: countries
+					country: {$exists: 1} <<< if !!countries then $in: countries else {}
 			}
 			{
 				$project:					
