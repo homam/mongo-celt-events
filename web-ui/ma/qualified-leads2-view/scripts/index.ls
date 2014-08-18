@@ -68,7 +68,7 @@ query = ->
 	number-of-flips = 10
 	hours = 24
 	
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/qualified-leads/CA,IE,US/#{number-of-flips}/#{hours}/#{sampleFrom}/#{sampleTo}/#{sources}"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/qualified-leads2/CA,IE,US/#{number-of-flips}/#{hours}/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	flip-text = pluralize "flip", number-of-flips
 	hour-text = pluralize "hour", hours

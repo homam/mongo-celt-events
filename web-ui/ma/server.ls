@@ -102,7 +102,7 @@ app.get do
 			to-array params.sources			
 
 app.get do 
-	"/query/qualified-leads/:countries/:flips/:hours/:sampleFrom/:sampleTo/:sources"
+	"/query/qualified-leads2/:countries/:flips/:hours/:sampleFrom/:sampleTo/:sources"
 	query-and-result (db, req, res) -> 
 		params = req.params
 		(require \./queries/qualified-leads) do
