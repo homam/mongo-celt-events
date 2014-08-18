@@ -60,8 +60,11 @@ update = ->
 	g.attr "transform", "translate(" + margin.left + "," + margin.top + ")"
 
 	x = d3.scale.linear!
-		.range [0, width]
-		.domain [0, (d3.max data-rows)]
+		.range [0, (width/6), (2*width/6), (3*width/6), (4*width/6), (5*width/6)]
+		.domain [0, 5, 10, 15, 20, 25]#, (d3.max data-rows)]
+		.clamp true
+
+	console.log <| [0, (d3.max data-rows)]
 
 	bins = x.ticks (if (d3.max data-rows) < 30 and width/35 > 10 then 10 else width/35)
 	data = d3.layout.histogram!.bins(bins)(data-rows)

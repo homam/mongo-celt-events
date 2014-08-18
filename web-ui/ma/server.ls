@@ -109,7 +109,7 @@ app.get do
 	"/query/qualified-leads2/:countries/:flips/:hours/:sampleFrom/:sampleTo/:sources"
 	query-and-result (db, req, res) -> 
 		params = req.params
-		(require \./queries/qualified-leads) do
+		(require \./queries/qualified-leads2) do
 			db
 			to-country-array params.countries
 			parseInt params.flips
