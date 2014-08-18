@@ -1,2 +1,0 @@
-find *-view -name "*.ls" -exec lsc -c {} \;
-find *-view -name "*.styl" -exec stylus --include ../../node_modules/nib/lib {} \;

@@ -12,14 +12,13 @@ utils = require "./utils"
 one-hour = 1000*60*60
 one-day =  one-hour*24
 
-query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->
-	(success, reject) <- new-promise			
-	(err, devices) <- utils.get-devices-from-media-sources db, sources	
-	(err, result) <- daily-time-spent db, query-from, query-to, countries, sample-from, sample-to, devices
-	return reject err if !!err
-	success <| result
+query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->	
 
-daily-time-spent = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, devices = null, callback) ->	
+	(success, reject) <- new-promise
+
+	(err, devices) <- utils.get-devices-from-media-sources db, sources	
+	return reject err if !!err
+
 	(err, res) <- db.IOSEvents.aggregate do
 		[
 			{
@@ -89,12 +88,13 @@ daily-time-spent = (db, query-from, query-to, countries = null, sample-from = nu
 					duration: $avg: "$duration"
 			}
 		]
-	return callback err, null if !!err
+
+	return reject err null if !!err
 
 	pretty = (/(1000)) >> Math.round
 
-	result = res |> sort-by (._id) |> map ({_id, users, sessions, avgSessionDuration, duration}) -> {day: _id, users, sessions, avgSessionDuration: (pretty avgSessionDuration), avgDailyDuration: (pretty duration) }
-
-	callback null, result
+	success <| res 
+		|> sort-by (._id) 
+		|> map ({_id, users, sessions, avgSessionDuration, duration}) -> {day: _id, users, sessions, avgSessionDuration: (pretty avgSessionDuration), avgDailyDuration: (pretty duration)}
 
 module.exports = query

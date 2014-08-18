@@ -1,0 +1,3 @@
+find ma/*-view -name "*.ls" -exec lsc -c {} \;
+find public -name "*.ls" -exec lsc -c {} \;
+find ma/*-view -name "*.styl" -exec stylus --include ../node_modules/nib/lib {} \;

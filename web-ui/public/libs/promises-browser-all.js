@@ -4,7 +4,7 @@ require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof requ
 (function(){
   var Promise, inherit, Obj, LazyPromise, i$, ref$, len$, k;
   require('setimmediate');
-  Promise = global.Promise || require('promise');
+  Promise = require('promise');
   inherit = require('inherits');
   Obj = require('prelude-ls').Obj;
   LazyPromise = function(fn){

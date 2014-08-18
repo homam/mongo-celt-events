@@ -19,19 +19,16 @@ connect-db = config.connect
 {port} = (process.argv.slice(2) |> require \minimist)
 port = port or config.port
 
-
 app = express!
-app.use body-parser.urlencoded extended: true
-app.set \port, port
-app.set \views, __dirname + \/
-app.engine \.html, (require \ejs).__express
-app.use <| (require \cookie-parser)!
-app.set 'view engine', \ejs
-app.use \/libs, express.static \../public/libs
-app.use \/graphs, express.static \../public/graphs
-app.use \/data, express.static \../public/data
-
-
+	..use body-parser.urlencoded extended: true
+	..set \port, port
+	..set \views, __dirname + \/
+	..engine \.html, (require \ejs).__express
+	..use <| (require \cookie-parser)!
+	..set 'view engine', \ejs
+	..use \/libs, express.static \../public/libs
+	..use \/graphs, express.static \../public/graphs
+	..use \/data, express.static \../public/data
 
 write-error = (res, error) ->
 	console.log \error, error
@@ -48,6 +45,13 @@ check-empty = (s) -->
 to-unix-time = (s) ->
 	return null if check-empty s
 	moment s .unix! * 1000	
+
+
+to-dubai-unix-time = (s) ->
+	u = to-unix-time s
+	return null if not u
+	u - (4 * 60 * 60 * 1000)
+
 
 to-int = (s) ->
 	return null if check-empty s
@@ -89,16 +93,16 @@ app.get do
 
 
 app.get do 
-	"/query/n-flips/:countries/:flips/:hours/:sampleFrom/:sampleTo/:sources"
+	"/query/qualified-leads/:countries/:flips/:hours/:sampleFrom/:sampleTo/:sources"
 	query-and-result (db, req, res) -> 
 		params = req.params
-		(require \./queries/n-flips) do
+		(require \./queries/qualified-leads) do
 			db
 			to-country-array params.countries
 			parseInt params.flips
 			parseInt params.hours
-			to-unix-time params.sampleFrom
-			to-unix-time params.sampleTo
+			to-dubai-unix-time params.sampleFrom
+			to-dubai-unix-time params.sampleTo
 			to-array params.sources			
 
 app.get do 
@@ -138,11 +142,11 @@ app.get do
 			params = req.params
 			(require module-path) do
 				db
-				to-unix-time params.durationFrom
-				to-unix-time params.durationTo
+				to-dubai-unix-time params.durationFrom
+				to-dubai-unix-time params.durationTo
 				to-country-array params.countries
-				to-unix-time params.sampleFrom
-				to-unix-time params.sampleTo
+				to-dubai-unix-time params.sampleFrom
+				to-dubai-unix-time params.sampleTo
 				to-array params.sources
 
 [
@@ -163,11 +167,11 @@ app.get do
 
 			(require module-path) do
 				db
-				to-unix-time params.durationFrom
-				to-unix-time params.durationTo
+				to-dubai-unix-time params.durationFrom
+				to-dubai-unix-time params.durationTo
 				to-country-array params.countries
-				to-unix-time params.sampleFrom
-				to-unix-time params.sampleTo
+				to-dubai-unix-time params.sampleFrom
+				to-dubai-unix-time params.sampleTo
 				to-int params.howManyDays
 				to-user-filter params.userPaymentStatus
 
@@ -183,11 +187,11 @@ app.get do
 			params = req.params
 			(require module-path) do
 				db
-				to-unix-time params.durationFrom
-				to-unix-time params.durationTo
+				to-dubai-unix-time params.durationFrom
+				to-dubai-unix-time params.durationTo
 				to-country-array params.countries
-				to-unix-time params.sampleFrom
-				to-unix-time params.sampleTo
+				to-dubai-unix-time params.sampleFrom
+				to-dubai-unix-time params.sampleTo
 				to-int params.howManyDays
 				to-bool params.uniqueCount
 

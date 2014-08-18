@@ -11,18 +11,17 @@ utils = require "./utils"
 one-hour = 1000*60*60
 one-day =  one-hour*24
 
-query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->
-	(success, reject) <- new-promise				
-	(err, devices) <- utils.get-devices-from-media-sources db, sources		
-	(err, result) <- daily-cards db, query-from, query-to, countries, sample-from, sample-to, devices
-	return reject err if !!err
-	success <| result
-
 # if the user visits the same Flashcard / EOC / etc. twice in the same day
 # this query count it as once
 
-daily-cards = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, devices = null, callback) ->	
-	db.IOSEvents.aggregate do
+query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->	
+
+	(success, reject) <- new-promise				
+
+	(err, devices) <- utils.get-devices-from-media-sources db, sources		
+	reject err if !!err
+
+	(err, res) <- db.IOSEvents.aggregate do
 		[
 			{
 				$match:
@@ -135,9 +134,8 @@ daily-cards = (db, query-from, query-to, countries = null, sample-from = null, s
 					usersEndedQuiz: $sum: $cond: [{$gt: ["$eoqs", 0]}, 1, 0]
 					users: $sum: 1
 			}
-		]
-		(err, res) ->
-			return callback err, null if !!err
-			callback null, (res |> sort-by (._id))
+		]		
+	return reject err if !!err
+	success <| res |> sort-by (._id)
 
 module.exports = query

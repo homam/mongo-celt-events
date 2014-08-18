@@ -14,13 +14,6 @@ one-hour = 1000*60*60
 one-day =  one-hour*24
 
 query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->
-	(success, reject) <- new-promise
-	(err, devices) <- utils.get-devices-from-media-sources db, sources	
-	(err, result) <- daily-opens db, query-from, query-to, countries, sample-from, sample-to, devices
-	return reject err if !!err
-	success <| result
-
-daily-opens = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, devices = null, callback) ->
 
 	now = new Date! .get-time!
 	today = now / one-day - ((now / one-day)%1)
@@ -28,6 +21,11 @@ daily-opens = (db, query-from, query-to, countries = null, sample-from = null, s
 	query-from -= (new Date()).getTimezoneOffset() * 60000
 	query-to -= (new Date()).getTimezoneOffset() * 60000	
 	
+	(success, reject) <- new-promise
+	
+	(err, devices) <- utils.get-devices-from-media-sources db, sources	
+	return reject err if !!err
+
 	(err, res) <- db.IOSEvents.aggregate do
 		[
 			{
@@ -95,7 +93,7 @@ daily-opens = (db, query-from, query-to, countries = null, sample-from = null, s
 			}
 		]
 
-	return callback err, null if !!err
+	return reject err if !!err
 
 	res = res |> sort-by (._id) |> map (-> {day:it._id} <<< (values: it.values |> sort-by (.daysAfterInstallation)) )
 
@@ -109,6 +107,6 @@ daily-opens = (db, query-from, query-to, countries = null, sample-from = null, s
 					[base + if daysAfterInstallation == 0 then users else 0, usage + if daysAfterInstallation == j then users else 0] ), [0, 0]
 			{day: j, base, users, ratio: users/base}
 
-	callback null, result
+	success <| result
 
 module.exports = query
