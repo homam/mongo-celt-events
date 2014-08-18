@@ -101,6 +101,20 @@ app.get do
 			to-unix-time params.sampleTo
 			to-array params.sources			
 
+app.get do 
+	"/query/qualified-leads/:countries/:flips/:hours/:sampleFrom/:sampleTo/:sources"
+	query-and-result (db, req, res) -> 
+		params = req.params
+		(require \./queries/qualified-leads) do
+			db
+			to-country-array params.countries
+			parseInt params.flips
+			parseInt params.hours
+			to-unix-time params.sampleFrom
+			to-unix-time params.sampleTo
+			to-array params.sources	
+			params.purchased
+
 [
 	* \daily-chapters, \./queries/daily-chapters
 	* \daily-cards, \./queries/daily-cards-flips-chapters-courses
@@ -204,6 +218,7 @@ app.post do
 	* \/subscriptions, \subscriptions
 	* \/push, \push
 	* \/flips, \flips
+	* \/qualified-leads2, \qualified-leads2
 ] |> each ([path, dir]) ->
 
 	app.use "/#dir/scripts/", express.static "#{dir}-view/scripts"

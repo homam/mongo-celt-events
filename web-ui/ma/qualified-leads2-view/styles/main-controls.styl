@@ -1,0 +1,41 @@
+@import 'nib'
+
+#main-controls
+	.controls
+		display: flex
+		flex-wrap: wrap
+		& > *
+			flex-grow: 1
+
+		h5 
+			text-align: left
+		.controls
+			display: flex
+			flex-wrap: wrap
+			& > div
+				flex-grow: 0
+				padding-right: 0.5em
+
+body
+	font-family: Menlo, monospace
+
+tbody 
+	th
+		text-align:right
+		padding-right: 0.2em
+		white-space: nowrap
+	td
+		padding: 0.2em 0.4em 0.2em 0.4em
+		min-width: 46px
+		text-align:right
+		white-space: nowrap
+		cursor: default
+	tr:nth-child(2n-1)
+		background-color: #deefff
+
+thead
+	font-weight: bold
+	th 
+		text-align: center
+		padding: 0em 2em
+ 
