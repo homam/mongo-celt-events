@@ -118,6 +118,9 @@ query = (db, countries, flips, hours, sample-from, sample-to, sources) ->
         else
             more-than-flip-devices.push(item["_id"])
     ,flips-per-device
+    
+    stats.day1.lt = less-than-flip-devices.length
+    stats.day1.gt = more-than-flip-devices.length
 
     (err, subscribed-devices) <- get-subscribed-devices(db, less-than-flip-devices, sample-from, sample-to, hours, 0)
     stats.day1.subscribtions.lt = subscribed-devices.length
@@ -127,20 +130,18 @@ query = (db, countries, flips, hours, sample-from, sample-to, sources) ->
 
     (err, flips-per-device) <- flips-per-device-in-x-hours db, more-than-flip-devices, countries, flips, hours, sample-from, sample-to, 24
 
-    less-than-flip-devices2 = []
-    more-than-flip-devices2 = []
+    less-than-flip-devices = []
+    more-than-flip-devices = []
 
     each (item)->
         if item.count <= 10
-            less-than-flip-devices2.push(item["_id"])
+            less-than-flip-devices.push(item["_id"])
         else
-            more-than-flip-devices2.push(item["_id"])
+            more-than-flip-devices.push(item["_id"])
     ,flips-per-device
 
-    stats.day1.lt = less-than-flip-devices.length
-    stats.day1.gt = more-than-flip-devices.length
-    stats.day2.lt = less-than-flip-devices2.length
-    stats.day2.gt = more-than-flip-devices2.length
+    stats.day2.lt = less-than-flip-devices.length
+    stats.day2.gt = more-than-flip-devices.length
 
     success stats
 
