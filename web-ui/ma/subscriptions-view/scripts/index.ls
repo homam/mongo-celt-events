@@ -71,7 +71,6 @@ query = ->
 	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
 	
 	data-cols := [""] ++ fill format-t
-
 	data-rows := ["Active users", "Viewed payment page", "Tapped buy button", "Purchased"] |> map -> [it] ++ (fill -> "...")
 
 	update!
@@ -84,7 +83,7 @@ query = ->
 		["Active users"] ++ (daily-subscriptions |> map -> "...")
 		["Viewed Payment page"] ++ (daily-subscriptions |> map (.subscriptionPageViews))
 		["Tapped Buy Button"] ++ (daily-subscriptions |> map (.buyTries))
-		["Purchased"] ++ (daily-subscriptions |> map (.purchases))		
+		["Payments"] ++ (daily-subscriptions |> map (.purchases))		
 	]	
 
 	update!
@@ -99,6 +98,6 @@ query!
 
 [sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
 
-(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/media-sources/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{sources}"
+(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/media-sources/CA,IE,US"
 
 media-source-tree.create(results)!

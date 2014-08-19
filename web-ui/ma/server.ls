@@ -44,13 +44,13 @@ check-empty = (s) -->
 
 to-unix-time = (s) ->
 	return null if check-empty s
-	moment s .unix! * 1000	
+	(moment s .unix! - new Date!.getTimezoneOffset! * 60) * 1000	
 
 
 to-dubai-unix-time = (s) ->
 	u = to-unix-time s
 	return null if not u
-	u - (4 * 60 * 60 * 1000)
+	u -  (4 * 60 * 60 * 1000)
 
 
 to-int = (s) ->
@@ -141,7 +141,7 @@ app.get do
 		query-and-result (db, req, res) -> 
 			params = req.params
 			(require module-path) do
-				db
+				db				
 				to-dubai-unix-time params.durationFrom
 				to-dubai-unix-time params.durationTo
 				to-country-array params.countries

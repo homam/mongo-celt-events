@@ -11,13 +11,17 @@ extend = require \deep-extend
 one-hour = 1000*60*60
 one-day =  one-hour*24
 
-fill-in-the-gaps = (query-from, query-to, initial, days) -->
+fill-in-the-gaps = (query-from, query-to, days) -->
 
-    empty-list = [query-from to query-to by 86400000]  |> map -> extend {day: (it - it % 86400000) / 86400000}, initial
+    query-from += 4 * 60 * 60 * 1000
+    query-to += 4 * 60 * 60 * 1000
+
+    empty-list = [query-from to query-to by 86400000]  |> map -> {day: (it - it % 86400000) / 86400000 subscriptionPageViews: 0, purchases: 0}
 
     days |> fold ((memo, value)->         
-        index = empty-list |> find-index -> it.day == value._id
-        memo[index] = value if !!index
+        index = empty-list |> find-index ->             
+            it.day == value._id        
+        memo[index] = value if index != -1
         memo
     ),  empty-list
     
