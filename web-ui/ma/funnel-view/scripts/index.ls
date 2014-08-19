@@ -138,7 +138,7 @@ query = ->
 
 	type = input-date \histogramType .value
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/funnel-depth-#type/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{how-many-days}"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/funnel-depth-#type/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{how-many-days}"
 
 	data-rows := results
 
