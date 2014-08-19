@@ -68,6 +68,8 @@ fill = (func)->
 
 query = ->	
 
+	timezone = parseInt (document.getElementById "timezone").value
+
 	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
 	
 	data-cols := [""] ++ fill format-t
@@ -75,7 +77,7 @@ query = ->
 
 	update!
 
-	(error, daily-subscriptions) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-subscriptions/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
+	(error, daily-subscriptions) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-subscriptions/#{timezone}/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	pretty = (m)-> JSON.stringify(m, null, 4)
 
@@ -88,7 +90,7 @@ query = ->
 
 	update!
 
-	(error, daily-users) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-active-users/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
+	(error, daily-users) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-active-users/#{timezone}/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	data-rows[0] = ["Active users"] ++ (daily-users |> map (.count))
 	

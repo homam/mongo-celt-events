@@ -20,8 +20,6 @@ d3.select '[name=howManyDays]' .selectAll \option .data [0 to 30]
 		.append \option .text id
 
 
-
-
 fresh-rows = ->
 	data-rows = []
 
@@ -36,12 +34,8 @@ document.getElementById \main-controls .add-event-listener do
 		return false
 	true
 
-
-
-
 margin = {top: 10, right: 5, bottom: 30, left: 10}
 height = (Math.min screen.availHeight*0.9, 400) - margin.top - margin.bottom
-
 
 svg = d3.select \#histogram
 g = svg.append \g .attr \class, \view-port-g
