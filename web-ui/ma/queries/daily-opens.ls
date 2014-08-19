@@ -15,11 +15,8 @@ one-day =  one-hour*24
 
 query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->
 
-	now = new Date! .get-time!
+	now = new Date! .get-time! 
 	today = now / one-day - ((now / one-day)%1)
-	
-	query-from -= (new Date()).getTimezoneOffset() * 60000
-	query-to -= (new Date()).getTimezoneOffset() * 60000	
 	
 	(success, reject) <- new-promise
 	

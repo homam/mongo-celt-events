@@ -150,7 +150,7 @@ query = ->
 
 
 populate-sources = ->
-	(results) <- (`promise-monad.ffmap`) (from-error-value-callback d3.json, d3) "/query/media-sources/CA,IE,US"
+	(results) <- (`promise-monad.ffmap`) (from-error-value-callback d3.json, d3) "/query/media-sources"
 	media-source-tree.create results
 
 
