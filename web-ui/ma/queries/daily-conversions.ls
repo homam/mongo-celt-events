@@ -12,33 +12,37 @@ one-day =  one-hour*24
 
 fill-in-the-gaps = (query-from, query-to, days) -->
 
-	empty-list = [query-from to query-to by 86400000]  |> map -> {day: (it - it % 86400000) / 86400000 visits: 0, installs: 0, conversion: 0}	
+	empty-list = [query-from til query-to by 86400000]  |> map -> {day: (it - it % 86400000) / 86400000 visits: 0, installs: 0, conversion: 0}	
 
 	days |> fold ((memo, value)-> 
 		index = empty-list |> find-index -> it.day == value.day
-		memo[index] = value if !!index
+		memo[index] = value if index != -1
 		memo
 	),  empty-list
 	
 
 query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null) ->	
+
 	(success, reject) <- new-promise
 	
-	query-from -= (new Date()).getTimezoneOffset() * 60000
-	query-to -= (new Date()).getTimezoneOffset() * 60000
-
 	db.IOSAdVisits.aggregate do
 		[
 			{
 				$match:	
 					country: $in: countries
 					creationTimestamp: $gte: query-from, $lte: query-to
-			}						
+			}				
 			{
 				$project:
-					day: $divide: [$subtract: ["$creationTimestamp", $mod: ["$creationTimestamp", 86400000]], 86400000]
+					dubaiCreationTimestamp: $add: ["$creationTimestamp", 4 * 60 * 60 * 1000]
 					source: 1
 					userId: $ifNull: ["$userId", "-"]
+			}		
+			{
+				$project:
+					day: $divide: [$subtract: ["$dubaiCreationTimestamp", $mod: ["$dubaiCreationTimestamp", 86400000]], 86400000]
+					source: 1
+					userId: 1
 			}
 			{
 				$group:

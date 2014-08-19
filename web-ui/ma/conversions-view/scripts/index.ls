@@ -72,7 +72,7 @@ query = ->
 
 	[queryFrom, queryTo] = <[queryFrom queryTo]> |> map input-date >> (.valueAsDate.getTime!)
 	
-	data-cols := ["Sources"] ++ ([queryFrom to queryTo by 86400000] |> map format-t)
+	data-cols := ["Sources"] ++ ([queryFrom til queryTo by 86400000] |> map format-t)
 	data-rows := results |> map (e)-> e <<< days: (e.days |> map -> it <<< source: e.source)
 
 	update!
