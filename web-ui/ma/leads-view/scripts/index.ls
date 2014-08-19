@@ -65,34 +65,24 @@ query = ->
 
 	[sampleFrom, sampleTo] = <[sampleFrom sampleTo]> |> map input-date >> (.value)
 		
-	number-of-flips = 10
-	hours = 24
+	number-of-flips = parseInt (document.getElementById "flips").value
+	hours = parseInt (document.getElementById "hours").value
+
 	
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/qualified-leads2/CA,IE,US/#{number-of-flips}/#{hours}/#{sampleFrom}/#{sampleTo}/#{sources}"
+	sources = ["apploop_int","appnexus_int","Facebook Ads","googleadwords_int","iAd", "tapjoy_int", "twitter"]
+
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/leads/CA,IE,US/#{number-of-flips}/#{hours}/#{sampleFrom}/#{sampleTo}/#{sources}"	
 
 	flip-text = pluralize "flip", number-of-flips
 	hour-text = pluralize "hour", hours
 
-	data-cols := ["Filtered", "Day 1", "Subscribed", "Day 2"]
+	data-cols := ["Sources", "Installs", "Less than #{number-of-flips} #{flip-text} in #{hours} #{hour-text}", "#{number-of-flips} or more #{flip-text} in #{hours} #{hour-text}", "%"]
 
-	data-rows := [
-		["Less than 10 flips", results.day1.lt, results.day1.subscribtions.lt, results.day2.lt]
-		["More than 10 flips", results.day1.gt, results.day1.subscribtions.gt, results.day2.gt]
-	]
+	data-rows := results 
+		|> map ({_id, lt, gt})->
+			d = lt + gt
+			[_id, lt + gt, lt, gt, if d == 0 then "-" else format-p1 gt / d]
 
 	update!
 
 query!
-
-[sampleFrom, sampleTo] = <[sampleFrom sampleTo]> |> map input-date >> (.value)
-
-(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/media-sources/CA,IE,US"
-
-media-source-tree.create(results)!
-
-d3.select '#main-controls-sources div' .select-all 'label' 
-	.data results
-		..enter!
-			.append "label"
-			.html -> '<input type="checkbox" value="'+it+'" checked="checked"/>' + it.replace("|", " ").trim()
-		..exit!.remove!

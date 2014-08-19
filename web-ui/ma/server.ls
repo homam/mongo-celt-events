@@ -93,10 +93,10 @@ app.get do
 
 
 app.get do 
-	"/query/qualified-leads/:countries/:flips/:hours/:sampleFrom/:sampleTo/:sources"
+	"/query/leads/:countries/:flips/:hours/:sampleFrom/:sampleTo/:sources"
 	query-and-result (db, req, res) -> 
 		params = req.params
-		(require \./queries/qualified-leads) do
+		(require \./queries/leads) do
 			db
 			to-country-array params.countries
 			parseInt params.flips
@@ -106,10 +106,10 @@ app.get do
 			to-array params.sources			
 
 app.get do 
-	"/query/qualified-leads2/:countries/:flips/:hours/:sampleFrom/:sampleTo/:sources"
+	"/query/leads2/:countries/:flips/:hours/:sampleFrom/:sampleTo/:sources"
 	query-and-result (db, req, res) -> 
 		params = req.params
-		(require \./queries/qualified-leads2) do
+		(require \./queries/leads2) do
 			db
 			to-country-array params.countries
 			parseInt params.flips
@@ -227,8 +227,8 @@ app.post do
 	* \/funnel, \funnel
 	* \/subscriptions, \subscriptions
 	* \/push, \push
-	* \/flips, \flips
-	* \/qualified-leads2, \qualified-leads2
+	* \/leads, \leads
+	* \/leads2, \leads2
 ] |> each ([path, dir]) ->
 
 	app.use "/#dir/scripts/", express.static "#{dir}-view/scripts"
