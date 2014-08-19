@@ -9,7 +9,7 @@
 {map, sort, sort-by, mean, filter, first, group-by, concat-map, foldl, Obj, maximum} = require \prelude-ls
 
 
-depths = {"Home":1, "Chapter":2, "Flashcard":3, "EOC":4, "Question":5, "EOQ":6}
+depths = {"": 0, "Home":1, "Chapter":2, "Flashcard":3, "EOC":4, "Question":5, "EOQ":6, "Subscription": 7}
 
 
 one-hour = 1000*60*60
@@ -74,6 +74,6 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
 
 	return reject err if !!err
 
-	success <| res |> (map ({_id, users}) -> view: _id, users: users) |> (filter ({view}) -> !!depths[view]) |> (sort-by ({view, users}) -> depths[view])
+	success <| res |> (map ({_id, users}) -> view: _id, users: users) |> sort-by (.users * -1) |> (filter ({view}) -> view is null or !!depths[view]) # |> (filter ({view}) -> !!depths[view]) |> (sort-by ({view, users}) -> depths[view])
 
 module.exports = query
