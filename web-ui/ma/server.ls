@@ -109,7 +109,7 @@ app.get do
 	"/query/qualified-leads2/:countries/:flips/:hours/:sampleFrom/:sampleTo/:sources"
 	query-and-result (db, req, res) -> 
 		params = req.params
-		(require \./queries/qualified-leads) do
+		(require \./queries/qualified-leads2) do
 			db
 			to-country-array params.countries
 			parseInt params.flips
@@ -133,7 +133,6 @@ app.get do
 	* \daily-active-users, \./queries/daily-active-users
 	* \purchased-for, \./queries/purchased-for
 	* \heat-map, \./queries/heat-map
-	* \media-sources, \./queries/media-sources
 	* \purchased-day, \./queries/purchased-day
 ] |> each ([req-path, module-path]) ->
 	app.get do
@@ -148,6 +147,13 @@ app.get do
 				to-dubai-unix-time params.sampleFrom
 				to-dubai-unix-time params.sampleTo
 				to-array params.sources
+
+app.get do
+	"/query/media-sources/:countries?"
+	query-and-result (db, req, res) -> 
+		(require \./queries/media-sources) do
+			db
+			to-country-array req.params.countries
 
 [
 	* \histogram-flips-cumulative, \./queries/histogram-flips-cumulative

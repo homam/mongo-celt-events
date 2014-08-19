@@ -3,7 +3,7 @@
 	promise-monad
 	to-callback
 } = require \promises-ls
-{each, map, id, find, lists-to-obj, concat, mean} = require \prelude-ls
+{each, map, id, find, filter, lists-to-obj, concat, mean, sum, div, foldl} = require \prelude-ls
 
 input-date = (name) ->
 	d3.select '#main-controls [name=' + name + ']' .node!
@@ -59,20 +59,19 @@ update = ->
 
 	g.attr "transform", "translate(" + margin.left + "," + margin.top + ")"
 
-	x = d3.scale.linear!
-		.range [0, width]
-		.domain [0, (d3.max data-rows)]
+	x = d3.scale.ordinal!
+		.rangeBands [0, width], 0.1
+		.domain (data-rows |> map (.time))
 
-	bins = x.ticks (if (d3.max data-rows) < 30 and width/35 > 10 then 10 else width/35)
-	data = d3.layout.histogram!.bins(bins)(data-rows)
+
+	data = data-rows
 
 	y = d3.scale.linear!
-		.domain [0, d3.max(data, (.y))]
+		.domain [0, d3.max(data, (.users))]
 		.range [height, 0]
 
 	xAxis = d3.svg.axis!
 		.scale x
-		.ticks bins.length
 		.orient \bottom
 
 
@@ -82,22 +81,22 @@ update = ->
 				..append \rect
 				..append \text
 		..attr "class", "bar"
-		..attr "transform", -> "translate(" + x(it.x) + "," + y(it.y) + ")"
+		..attr "transform", -> "translate(" + x(it.time) + "," + y(it.users) + ")"
 		..exit!
 			.remove!
 
 
 	bar.select "rect"
 		.attr "x", 1
-		.attr "width", x(data[0].dx) - 1
-		.attr "height", -> height - y(it.y)
+		.attr "width", x.rangeBand!
+		.attr "height", -> height - y(it.users)
 
 	bar.select \text
 		.attr("dy", ".75em")
 		.attr("y", 6)
-		.attr("x", x(data[0].dx) / 2)
+		.attr("x", x.rangeBand! / 2)
 		.attr("text-anchor", "middle")
-		.text (-> if it.y > 0 then it.y else "")
+		.text (-> if it.users > 0 then it.users else "")
 
 	
 	svg.select 'g.x.axis' .call(xAxis);
@@ -130,9 +129,23 @@ query = ->
 
 	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/histogram-timespent-#type/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{how-many-days}/#{user-payment-status}"
 
-	data-rows := results |> (map ({_id, users}) -> [_id for i in [1 to users]]) |> concat
+	total-users = results |> (map (.users)) >> sum
 
-	console.log \mean, mean data-rows
+	console.log \mean, (results |> (map ({_id, users}) -> _id * users / total-users) |> sum)
+
+	# data-rows := results |> (map ({_id, users}) -> [_id for i in [1 to users]]) |> concat
+
+	data-rows := [0 to (d3.max results, (._id))] |> map (m) -> time: m, users: (results |> find ({_id}) -> _id == m)?.users or 0
+
+	data-rows := (data-rows |> filter (.time <= 20)) ++ [{time: "20+", users: (data-rows |> filter (.time > 20) |> map (.users) |> sum)}]
+
+	# data-rows := data-rows |> foldl do 
+	# 	(res, {time, users}) ->
+	# 		i = time `div` 5
+	# 		res[i] = 0 if not res[i]?
+	# 		res[i] += users
+	# 		res
+	# 	[]
 
 	update!
 
