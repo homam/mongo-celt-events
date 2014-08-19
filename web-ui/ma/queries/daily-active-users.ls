@@ -16,7 +16,7 @@ fill-in-the-gaps = (query-from, query-to, days) -->
     query-from += 4 * 60 * 60 * 1000
     query-to += 4 * 60 * 60 * 1000
 
-    empty-list = [query-from to query-to by 86400000]  |> map -> {day: (it - it % 86400000) / 86400000 count: 0}
+    empty-list = [query-from til query-to by 86400000]  |> map -> {day: (it - it % 86400000) / 86400000 count: 0}
 
     days |> fold ((memo, value)->         
         index = empty-list |> find-index ->             

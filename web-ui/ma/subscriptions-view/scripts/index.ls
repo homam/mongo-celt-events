@@ -64,7 +64,7 @@ format-t = (timestamp)-> moment(new Date(timestamp)).format("DD-MM")
 
 fill = (func)->
 	[start, end] = <[queryFrom queryTo]> |> map input-date >> (.valueAsDate.getTime!)
-	[start to end by 86400000] |> map func
+	[start til end by 86400000] |> map func
 
 query = ->	
 
