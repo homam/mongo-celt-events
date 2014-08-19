@@ -64,14 +64,13 @@ format-t = (timestamp)-> moment(new Date(timestamp)).format("DD-MM")
 
 fill = (func)->
 	[start, end] = <[queryFrom queryTo]> |> map input-date >> (.valueAsDate.getTime!)
-	[start to end by 86400000] |> map func
+	[start til end by 86400000] |> map func
 
 query = ->	
 
 	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
 	
 	data-cols := [""] ++ fill format-t
-
 	data-rows := ["Active users", "Viewed payment page", "Tapped buy button", "Purchased"] |> map -> [it] ++ (fill -> "...")
 
 	update!
@@ -84,7 +83,7 @@ query = ->
 		["Active users"] ++ (daily-subscriptions |> map -> "...")
 		["Viewed Payment page"] ++ (daily-subscriptions |> map (.subscriptionPageViews))
 		["Tapped Buy Button"] ++ (daily-subscriptions |> map (.buyTries))
-		["Purchased"] ++ (daily-subscriptions |> map (.purchases))		
+		["Payments"] ++ (daily-subscriptions |> map (.purchases))		
 	]	
 
 	update!
