@@ -14,7 +14,7 @@ one-day =  one-hour*24
 # if the user visits the same Flashcard / EOC / etc. twice in the same day
 # this query count it as once
 
-query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->	
+query = (db, timezone, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->	
 
 	(success, reject) <- new-promise				
 

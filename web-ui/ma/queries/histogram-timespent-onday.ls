@@ -15,7 +15,7 @@ one-day =  one-hour*24
 
 
 
-query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, how-many-days = 10) ->
+query = (db, timezone, query-from, query-to, countries = null, sample-from = null, sample-to = null, how-many-days = 10) ->
 	(success, reject) <- new-promise
 
 	(err, res) <- db.IOSEvents.aggregate do

@@ -60,7 +60,7 @@ query = ->
 
 	[queryFrom, queryTo] = <[queryFrom queryTo]> |> map input-date >> (.value)
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-push/#{queryFrom}/#{queryTo}/CA,IE,US"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-push/240/#{queryFrom}/#{queryTo}/CA,IE,US"
 
 	[queryFrom, queryTo] = <[queryFrom queryTo]> |> map input-date >> (.valueAsDate.getTime!)	
 	data-cols := [""] ++ ([queryFrom til queryTo by 86400000] |> map format-t)	

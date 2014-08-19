@@ -11,10 +11,10 @@ utils = require "./utils"
 one-hour = 1000*60*60
 one-day =  one-hour*24
 
-fill-in-the-gaps = (query-from, query-to, days) -->
+fill-in-the-gaps = (timezone, query-from, query-to, days) -->
 
-    query-from += 4 * 60 * 60 * 1000
-    query-to += 4 * 60 * 60 * 1000
+    query-from += timezone * 60 * 1000
+    query-to += timezone * 60 * 1000
 
     empty-list = [query-from til query-to by 86400000]  |> map -> {day: (it - it % 86400000) / 86400000 count: 0}
 
@@ -25,7 +25,7 @@ fill-in-the-gaps = (query-from, query-to, days) -->
         memo
     ),  empty-list
 
-query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->   
+query = (db, timezone, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->   
 
     (success, reject) <- new-promise
     (err, devices) <- utils.get-devices-from-media-sources db, sources
@@ -40,7 +40,7 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
             }
             {
                 $project:
-                    dubaiTime: $add: ["$serverTime", 4 * 60 * 60 * 1000]
+                    dubaiTime: $add: ["$serverTime", timezone * 60 * 1000]
                     adId: "$device.adId"
                     installationTime: $subtract: ["$serverTime", "$timeDelta"]
             }                        
@@ -73,6 +73,6 @@ query = (db, query-from, query-to, countries = null, sample-from = null, sample-
         ]
         (err, res) ->
             return reject err if !!err            
-            success <| res |> (fill-in-the-gaps query-from, query-to)
+            success <| res |> (fill-in-the-gaps timezone, query-from, query-to)
 
 module.exports = query

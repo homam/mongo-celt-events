@@ -97,7 +97,7 @@ query = ->
 	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)	
 
 
-	(results) <- (`promise-monad.bind`) (from-error-value-callback d3.json, d3) "/query/daily-opens/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
+	(results) <- (`promise-monad.bind`) (from-error-value-callback d3.json, d3) "/query/daily-opens/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	base = [0 to how-many-days] |> map (d) -> 
 		results |> find (.day == d) |> (-> it?.base or 0) 
@@ -115,12 +115,12 @@ query = ->
 	update!
 
 	(results) <- (`promise-monad.bind`) parallel-sequence [
-		((from-error-value-callback d3.json, d3) "/query/daily-time-spent/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) -> 
+		((from-error-value-callback d3.json, d3) "/query/daily-time-spent/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) -> 
 			data-rows := update-data-rows data-rows, \sessions, results, (.day), -> if !!it then format-d1 it.sessions/it.users else "-"
 			data-rows := update-data-rows data-rows, \time, results, (.day), -> if !!it then format-d1 (it.avgDailyDuration/60) else "-"
 			update!
 
-		((from-error-value-callback d3.json, d3) "/query/daily-cards/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->
+		((from-error-value-callback d3.json, d3) "/query/daily-cards/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->
 			data-rows := update-data-rows data-rows, \interacted, results, (._id), -> if !!it then format-p0 it.users/users[it._id] else "-"
 
 			<[flips backFlips chapters courses]> |> each (field) ->
@@ -135,13 +135,13 @@ query = ->
 
 			update!
 
-		((from-error-value-callback d3.json, d3) "/query/daily-ratings/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->
+		((from-error-value-callback d3.json, d3) "/query/daily-ratings/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->
 			<[rated never remind]> |> each (field) ->
 				data-rows := update-data-rows data-rows, field, results, (._id), -> if !!it then format-d0 it[field] else "-"
 
 			update!
 
-		((from-error-value-callback d3.json, d3) "/query/purchased-day/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->
+		((from-error-value-callback d3.json, d3) "/query/purchased-day/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->
 			<[userSubscription]> |> each (field) ->
 				data-rows := update-data-rows data-rows, field, results, (._id), -> if !!it then format-d0 it[field] else 0
 				

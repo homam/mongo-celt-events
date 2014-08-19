@@ -82,7 +82,7 @@ query = ->
 
 	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/popular-courses/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{sources}"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/popular-courses/240/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	data-rows := results |> map (->  
 		[
@@ -96,7 +96,7 @@ query = ->
 
 	update!
 
-	(err, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/purchased-for/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"		
+	(err, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/purchased-for/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"		
 
 	maximum-purchase-count := results
 		|> values

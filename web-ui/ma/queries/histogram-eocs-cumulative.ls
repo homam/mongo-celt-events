@@ -11,7 +11,7 @@ one-hour = 1000*60*60
 one-day =  one-hour*24
 
 
-query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, how-many-days = 10, unique-count = true) ->
+query = (db, timezone, query-from, query-to, countries = null, sample-from = null, sample-to = null, how-many-days = 10, unique-count = true) ->
 	(success, reject) <- new-promise
 
 	install-time-to = (Math.min query-to, (new Date! .get-time!)) - (how-many-days * 24 * 60 * 60 * 1000)

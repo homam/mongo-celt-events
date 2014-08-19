@@ -38,7 +38,7 @@ get-devices = (db, query-from, query-to, countries = null, sample-from = null, s
 	callback null, (results |> map (._id))
 
 
-query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, how-many-days = 10, user-payment-status) ->
+query = (db, timezone, query-from, query-to, countries = null, sample-from = null, sample-to = null, how-many-days = 10, user-payment-status) ->
 
 	(success, reject) <- new-promise
 

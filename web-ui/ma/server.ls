@@ -47,11 +47,10 @@ to-unix-time = (s) ->
 	(moment s .unix! - new Date!.getTimezoneOffset! * 60) * 1000	
 
 
-to-dubai-unix-time = (s) ->
+to-user-unix-time = (timezone, s) ->
 	u = to-unix-time s
-	return null if not u
-	u -  (4 * 60 * 60 * 1000)
-
+	return null if not u	
+	u - (timezone * 60 * 1000)
 
 to-int = (s) ->
 	return null if check-empty s
@@ -93,29 +92,33 @@ app.get do
 
 
 app.get do 
-	"/query/leads/:countries/:flips/:hours/:sampleFrom/:sampleTo/:sources"
+	"/query/leads/:countries/:flips/:hours/:timezone/:sampleFrom/:sampleTo/:sources"
 	query-and-result (db, req, res) -> 
 		params = req.params
+		timezone = parseInt params.timezone
 		(require \./queries/leads) do
 			db
 			to-country-array params.countries
 			parseInt params.flips
 			parseInt params.hours
-			to-dubai-unix-time params.sampleFrom
-			to-dubai-unix-time params.sampleTo
+			timezone
+			to-user-unix-time timezone, params.sampleFrom
+			to-user-unix-time timezone, params.sampleTo
 			to-array params.sources			
 
 app.get do 
-	"/query/leads2/:countries/:flips/:hours/:sampleFrom/:sampleTo/:sources"
+	"/query/leads2/:countries/:flips/:hours/:timezone/:sampleFrom/:sampleTo/:sources"
 	query-and-result (db, req, res) -> 
 		params = req.params
+		timezone = parseInt params.timezone
 		(require \./queries/leads2) do
-			db
+			db			
 			to-country-array params.countries
 			parseInt params.flips
 			parseInt params.hours
-			to-unix-time params.sampleFrom
-			to-unix-time params.sampleTo
+			timezone
+			to-user-unix-time timezone, params.sampleFrom
+			to-user-unix-time timezone, params.sampleTo
 			to-array params.sources	
 			params.purchased
 
@@ -136,16 +139,18 @@ app.get do
 	* \purchased-day, \./queries/purchased-day
 ] |> each ([req-path, module-path]) ->
 	app.get do
-		"/query/#req-path/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:sources?"
+		"/query/#req-path/:timezone/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:sources?"
 		query-and-result (db, req, res) -> 
 			params = req.params
+			timezone = parseInt params.timezone
 			(require module-path) do
 				db				
-				to-dubai-unix-time params.durationFrom
-				to-dubai-unix-time params.durationTo
+				timezone
+				to-user-unix-time timezone, params.durationFrom
+				to-user-unix-time timezone, params.durationTo
 				to-country-array params.countries
-				to-dubai-unix-time params.sampleFrom
-				to-dubai-unix-time params.sampleTo
+				to-user-unix-time timezone, params.sampleFrom
+				to-user-unix-time timezone, params.sampleTo
 				to-array params.sources
 
 app.get do
@@ -166,18 +171,18 @@ app.get do
 
 ] |> each ([req-path, module-path]) ->
 	app.get do
-		"/query/#req-path/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:howManyDays?/:userPaymentStatus?"
-
+		"/query/#req-path/:timezone/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:howManyDays?/:userPaymentStatus?"
 		query-and-result (db, req, res) -> 
 			params = req.params
-
+			timezone = parseInt params.timezone
 			(require module-path) do
 				db
-				to-dubai-unix-time params.durationFrom
-				to-dubai-unix-time params.durationTo
+				timezone
+				to-user-unix-time timezone, params.durationFrom
+				to-user-unix-time timezone, params.durationTo
 				to-country-array params.countries
-				to-dubai-unix-time params.sampleFrom
-				to-dubai-unix-time params.sampleTo
+				to-user-unix-time timezone, params.sampleFrom
+				to-user-unix-time timezone, params.sampleTo
 				to-int params.howManyDays
 				to-user-filter params.userPaymentStatus
 
@@ -188,16 +193,18 @@ app.get do
 
 ] |> each ([req-path, module-path]) ->
 	app.get do
-		"/query/#req-path/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:howManyDays?/:uniqueCount?"
+		"/query/#req-path/:timezone/:durationFrom/:durationTo/:countries?/:sampleFrom?/:sampleTo?/:howManyDays?/:uniqueCount?"
 		query-and-result (db, req, res) -> 
 			params = req.params
+			timezone = parseInt params.timezone
 			(require module-path) do
 				db
-				to-dubai-unix-time params.durationFrom
-				to-dubai-unix-time params.durationTo
+				timezone
+				to-user-unix-time timezone, params.durationFrom
+				to-user-unix-time timezone, params.durationTo
 				to-country-array params.countries
-				to-dubai-unix-time params.sampleFrom
-				to-dubai-unix-time params.sampleTo
+				to-user-unix-time timezone, params.sampleFrom
+				to-user-unix-time timezone, params.sampleTo
 				to-int params.howManyDays
 				to-bool params.uniqueCount
 

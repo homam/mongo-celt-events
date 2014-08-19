@@ -127,7 +127,7 @@ query = ->
 
 	type = input-date \histogramType .value
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/histogram-timespent-#type/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{how-many-days}/#{user-payment-status}"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/histogram-timespent-#type/240/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{how-many-days}/#{user-payment-status}"
 
 	total-users = results |> (map (.users)) >> sum
 

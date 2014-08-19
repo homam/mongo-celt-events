@@ -63,7 +63,7 @@ purchased-for = (db, adId, timeDelta)->
     console.log "#{adId} purchased for #{results[0].courseKey}"
     success <| results[0] <<< adId: adId
 
-query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null)->
+query = (db, timezone, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null)->
 
     (success, reject) <- new-promise
     (err, devices) <- utils.get-devices-from-media-sources db, sources

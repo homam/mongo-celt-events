@@ -12,7 +12,7 @@ utils = require "./utils"
 one-hour = 1000*60*60
 one-day =  one-hour*24
 
-query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->	
+query = (db, timezone, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->	
 
 	(success, reject) <- new-promise
 

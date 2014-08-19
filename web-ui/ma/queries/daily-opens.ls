@@ -13,7 +13,7 @@ utils = require "./utils"
 one-hour = 1000*60*60
 one-day =  one-hour*24
 
-query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->
+query = (db, timezone, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->
 
 	now = new Date! .get-time! 
 	today = now / one-day - ((now / one-day)%1)

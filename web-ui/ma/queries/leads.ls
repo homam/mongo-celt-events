@@ -81,7 +81,7 @@ did-n-flips-in-x-hours = (db, source, countries = null, flips = 10, hours = 1, s
     console.log result
     success <| result
 
-query = (db, countries, flips, hours, sample-from, sample-to, sources) ->
+query = (db, countries, flips, hours, timezone, sample-from, sample-to, sources) ->
 
     (success, reject) <- new-promise
     sources 

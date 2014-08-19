@@ -7,13 +7,9 @@
 {map, sort, sort-by, mean, filter, first, group-by, concat-map, foldl, maximum} = require \prelude-ls
 utils = require "./utils"
 
-query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null, callback) ->
+query = (db, timezone, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null, callback) ->
     (success, reject) <- new-promise
     (err, devices) <- utils.get-devices-from-media-sources db, sources
-
-    query-from -= (new Date()).getTimezoneOffset() * 60000
-    query-to -= (new Date()).getTimezoneOffset() * 60000
-
     db.IOSEvents.aggregate do
         [
             {

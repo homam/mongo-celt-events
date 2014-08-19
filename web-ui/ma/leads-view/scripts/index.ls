@@ -69,9 +69,9 @@ query = ->
 	hours = parseInt (document.getElementById "hours").value
 
 	
-	sources = ["apploop_int","appnexus_int","Facebook Ads","googleadwords_int","iAd", "tapjoy_int", "twitter"]
+	sources = ["apploop_int","appnexus_int","Facebook Ads","googleadwords_int","iAd", "tapjoy_int", "Twitter"]
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/leads/CA,IE,US/#{number-of-flips}/#{hours}/#{sampleFrom}/#{sampleTo}/#{sources}"	
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/leads/CA,IE,US/#{number-of-flips}/#{hours}/240/#{sampleFrom}/#{sampleTo}/#{sources}"	
 
 	flip-text = pluralize "flip", number-of-flips
 	hour-text = pluralize "hour", hours

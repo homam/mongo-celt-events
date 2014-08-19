@@ -68,7 +68,7 @@ query = ->
 	number-of-flips = 10
 	hours = 24
 	
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/leads2/CA,IE,US/#{number-of-flips}/#{hours}/#{sampleFrom}/#{sampleTo}/#{sources}"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/leads2/CA,IE,US/#{number-of-flips}/#{hours}/240/#{sampleFrom}/#{sampleTo}/#{sources}"
 
 	flip-text = pluralize "flip", number-of-flips
 	hour-text = pluralize "hour", hours
@@ -96,3 +96,10 @@ d3.select '#main-controls-sources div' .select-all 'label'
 			.append "label"
 			.html -> '<input type="checkbox" value="'+it+'" checked="checked"/>' + it.replace("|", " ").trim()
 		..exit!.remove!
+
+
+
+
+
+
+

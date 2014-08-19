@@ -115,10 +115,9 @@ query = ->
 
 	type = input-date \histogramType .value
 
-	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/histogram-flips-#type/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{how-many-days}"
+	(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/histogram-flips-#type/240/#{queryFrom}/#{queryTo}/CA,IE/#{sampleFrom}/#{sampleTo}/#{how-many-days}"
 
 	data-rows := results |> (map ({_id, users}) -> [_id for i in [1 to users]]) |> concat
-
 
 	update!
 

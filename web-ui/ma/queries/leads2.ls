@@ -96,7 +96,7 @@ flips-per-device-in-x-hours = (db, devices, countries = null, flips = 10, hours 
     # result = (if results.length > 0 then results[0] else {lt: 0, gt: 0}) <<< _id: devices 
     callback null, results
 
-query = (db, countries, flips, hours, sample-from, sample-to, sources) ->
+query = (db, countries, flips, hours, timezone, sample-from, sample-to, sources) ->
     
     (success, reject) <- new-promise
 

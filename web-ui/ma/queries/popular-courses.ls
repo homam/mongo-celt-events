@@ -1,5 +1,3 @@
-# > http://localhost:3002/query/popular-courses/2014-07-20/2014-07-26/CA,IE/2014-07-20/2014-07-26
-
 {
 	promises: {
 		promise-monad
@@ -11,14 +9,14 @@ utils = require "./utils"
 
 courses = require \../data/courses.json
 
-one-hour = 1000*60*60
-one-day =  one-hour*24
+one-minue = 1000 * 60
+one-hour = one-minue * 60
+one-day =  one-hour * 24
 
+query = (db, timezone, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->
 
-query = (db, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->
 	(success, reject) <- new-promise
 	(err, devices) <- utils.get-devices-from-media-sources db, sources
-
 	(err, res) <- db.IOSEvents.aggregate do
 		[
 			{
