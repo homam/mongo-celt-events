@@ -19,13 +19,14 @@ fill-in-the-gaps = (timezone, query-from, query-to, days) -->
     empty-list = [query-from til query-to by 86400000]  |> map -> {_id: (it - it % 86400000) / 86400000, count: 0}
 
     days |> fold ((memo, value)->         
-        index = empty-list |> find-index -> it._id == value._id        
+        index = empty-list |> find-index ->             
+            it._id == value._id        
         memo[index] = value if index != -1
         memo
     ),  empty-list
     
 
-query = (db, timezone, query-from, query-to, valid, countries = null, sample-from = null, sample-to = null, sources = null) ->
+query = (db, timezone, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->
     
     (success, reject) <- new-promise    
     (err, devices) <- utils.get-devices-from-media-sources db, sources    
@@ -38,8 +39,8 @@ query = (db, timezone, query-from, query-to, valid, countries = null, sample-fro
                     serverTime: $gte: query-from, $lte: query-to
                     "device.adId": {$exists: 1} <<< if !!devices then $in: devices else {}
                     "event.name": "IAP-PurchaseVerified"
-                    "event.valid": valid
-            } 
+                    "event.valid": true
+            }
             {
                 $project:
                     installationTime: $subtract: ["$serverTime", "$timeDelta"]
@@ -56,21 +57,23 @@ query = (db, timezone, query-from, query-to, valid, countries = null, sample-fro
                 []
         ) ++ [
             {
-                $group:
-                    _id: "$device.adId"
-                    subscriptionTimestamp: $first: "$serverTime"
+                $project:
+                    renewalTimestamp: $add: ["$serverTime", timezone * one-minute]
+                    device: 1
             }
             {
                 $project:
-                    subscriptionTimestamp: $add: ["$subscriptionTimestamp", timezone * one-minute]
-            }
-            {
-                $project:
-                    subscriptionDate: $divide: [$subtract: ["$subscriptionTimestamp", $mod: ["$subscriptionTimestamp", 86400000]], 86400000]
+                    renewalDate: $divide: [$subtract: ["$renewalTimestamp", $mod: ["$renewalTimestamp", 86400000]], 86400000]
+                    device: 1
             }
             {
                 $group:
-                    _id: "$subscriptionDate"
+                    _id: adId: "$device.adId", subscriptionDate: "$renewalDate"
+                    count: $sum: 1
+            }            
+            {
+                $group:
+                    _id: "$_id.renewalDate"
                     count: $sum: 1
             }
             {

@@ -80,7 +80,8 @@ query = ->
 		["<Payment page views>"] ++ fill -> "..."
 		["Unique buy button taps"] ++ fill -> "..."
 		["<Buy button taps>"] ++ fill -> "..."
-		["Subscriptions"] ++ fill -> "..."
+		["Genuine subscriptions"] ++ fill -> "..."
+		["Jail-Broken subscriptions"] ++ fill -> "..."
 		["Known renewals"] ++ fill -> "..."
 	]
 	update!
@@ -108,24 +109,19 @@ query = ->
 				data-rows[4] := ["<Buy button taps>"] ++ ((zip-with s-div, (results |> map (.count)), unique-button-taps) |> map format-d1)
 				update!
 
-		((from-error-value-callback d3.json, d3) "/query/daily-subscriptions/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.bind` (results) ->
+		((from-error-value-callback d3.json, d3) "/query/daily-subscriptions/240/#{queryFrom}/#{queryTo}/true/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.bind` (results) ->
 			subscriptions = results |> map (.count)
-			data-rows[5] := ["Subscriptions"] ++ subscriptions
+			data-rows[5] := ["Genuine subscriptions"] ++ subscriptions
 			update!		
 
 			((from-error-value-callback d3.json, d3) "/query/daily-payments/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->
-				data-rows[6] := ["Known renewals"] ++ (zip-with (-), (results |> map (.count)), subscriptions)
+				data-rows[7] := ["Known renewals"] ++ (zip-with (-), (results |> map (.count)), subscriptions)
 				update!
 
-		# serial-sequence [
-		# 	((from-error-value-callback d3.json, d3) "/query/daily-subscriptions/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->
-		# 		data-rows[5] := ["Subscriptions"] ++ (results |> map (.count))			
-		# 		update!		
-
-		# 	((from-error-value-callback d3.json, d3) "/query/daily-payments/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->
-		# 		data-rows[6] := ["Known renewals"] ++ (zip-with (-), (results |> map (.count)), (drop 1 data-rows[5]))
-		# 		update!
-		# ]
+		((from-error-value-callback d3.json, d3) "/query/daily-subscriptions/240/#{queryFrom}/#{queryTo}/false/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.bind` (results) ->
+			subscriptions = results |> map (.count)
+			data-rows[6] := ["Jail-Broken subscriptions"] ++ subscriptions
+			update!				
 
 	]
 

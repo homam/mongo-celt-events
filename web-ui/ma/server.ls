@@ -120,7 +120,7 @@ app.get do
 			to-array params.sources	
 			params.purchased
 [
-	* \daily-buy-button-taps, \./queries/daily-buy-button-taps
+	* \daily-buy-button-taps, \./queries/daily-buy-button-taps	
 	* \daily-subscription-page-views, \./queries/daily-subscription-page-views
 ] |> each ([req-path, module-path]) ->
 	app.get do 
@@ -139,19 +139,34 @@ app.get do
 				to-user-unix-time timezone, params.sampleTo
 				to-array params.sources
 
+app.get do
+	"/query/daily-subscriptions/:timezone/:durationFrom/:durationTo/:valid/:countries?/:sampleFrom?/:sampleTo?/:sources?"
+	query-and-result (db, req, res) -> 		
+		params = req.params
+		timezone = parseInt params.timezone
+		(require \./queries/daily-subscriptions) do
+			db				
+			timezone
+			to-user-unix-time timezone, params.durationFrom
+			to-user-unix-time timezone, params.durationTo
+			to-bool params.valid
+			to-country-array params.countries
+			to-user-unix-time timezone, params.sampleFrom
+			to-user-unix-time timezone, params.sampleTo
+			to-array params.sources
 
 [
 	* \daily-chapters, \./queries/daily-chapters
 	* \daily-cards, \./queries/daily-cards-flips-chapters-courses
 	* \daily-time-spent, \./queries/daily-time-spent
 	* \daily-opens, \./queries/daily-opens
-	* \daily-payments, \./queries/daily-payments
-	* \daily-ratings, \./queries/daily-ratings
-	* \daily-subscriptions, \./queries/daily-subscriptions
+	* \daily-payments, \./queries/daily-payments	
+	* \daily-ratings, \./queries/daily-ratings	
 	* \daily-depth, \./queries/daily-depth
 	* \daily-eocs, \./queries/daily-eocs
 	* \popular-courses, \./queries/popular-courses
 	* \daily-push, \./queries/daily-push 
+	* \expected-renewals, \./queries/expected-renewals
 	* \daily-active-users, \./queries/daily-active-users
 	* \purchased-for, \./queries/purchased-for
 	* \heat-map, \./queries/heat-map
