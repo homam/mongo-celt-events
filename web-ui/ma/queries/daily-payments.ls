@@ -19,7 +19,8 @@ fill-in-the-gaps = (timezone, query-from, query-to, days) -->
     empty-list = [query-from til query-to by 86400000]  |> map -> {_id: (it - it % 86400000) / 86400000, count: 0}
 
     days |> fold ((memo, value)->         
-        index = empty-list |> find-index -> it._id == value._id        
+        index = empty-list |> find-index ->             
+            it._id == value._id        
         memo[index] = value if index != -1
         memo
     ),  empty-list
@@ -39,7 +40,7 @@ query = (db, timezone, query-from, query-to, countries = null, sample-from = nul
                     "device.adId": {$exists: 1} <<< if !!devices then $in: devices else {}
                     "event.name": "IAP-PurchaseVerified"
                     "event.valid": true
-            } 
+            }
             {
                 $project:
                     installationTime: $subtract: ["$serverTime", "$timeDelta"]
@@ -56,21 +57,23 @@ query = (db, timezone, query-from, query-to, countries = null, sample-from = nul
                 []
         ) ++ [
             {
-                $group:
-                    _id: "$device.adId"
-                    subscriptionTimestamp: $first: "$serverTime"
-            }
-            {
                 $project:
-                    subscriptionTimestamp: $add: ["$subscriptionTimestamp", timezone * one-minute]
+                    subscriptionTimestamp: $add: ["$serverTime", timezone * one-minute]
+                    device: 1
             }
             {
                 $project:
                     subscriptionDate: $divide: [$subtract: ["$subscriptionTimestamp", $mod: ["$subscriptionTimestamp", 86400000]], 86400000]
+                    device: 1
             }
             {
                 $group:
-                    _id: "$subscriptionDate"
+                    _id: adId: "$device.adId", subscriptionDate: "$subscriptionDate"
+                    count: $sum: 1
+            }            
+            {
+                $group:
+                    _id: "$_id.subscriptionDate"
                     count: $sum: 1
             }
             {

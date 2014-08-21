@@ -46,7 +46,6 @@ to-unix-time = (s) ->
 	return null if check-empty s
 	(moment s .unix! - new Date!.getTimezoneOffset! * 60) * 1000	
 
-
 to-user-unix-time = (timezone, s) ->
 	u = to-unix-time s
 	return null if not u	
@@ -60,7 +59,6 @@ to-int = (s) ->
 to-bool = (s) ->
 	return null if check-empty s
 	return \true == s.to-lower-case!
-
 
 to-array = (s) ->
 	return null if check-empty s
@@ -121,12 +119,33 @@ app.get do
 			to-user-unix-time timezone, params.sampleTo
 			to-array params.sources	
 			params.purchased
+[
+	* \daily-buy-button-taps, \./queries/daily-buy-button-taps
+	* \daily-subscription-page-views, \./queries/daily-subscription-page-views
+] |> each ([req-path, module-path]) ->
+	app.get do 
+		"/query/#{req-path}/:timezone/:durationFrom/:durationTo/:uniqueViews/:countries?/:sampleFrom?/:sampleTo?/:sources?"
+		query-and-result (db, req, res) -> 
+			params = req.params
+			timezone = parseInt params.timezone
+			(require module-path) do
+				db				
+				timezone
+				to-user-unix-time timezone, params.durationFrom
+				to-user-unix-time timezone, params.durationTo
+				to-bool params.uniqueViews
+				to-country-array params.countries
+				to-user-unix-time timezone, params.sampleFrom
+				to-user-unix-time timezone, params.sampleTo
+				to-array params.sources
+
 
 [
 	* \daily-chapters, \./queries/daily-chapters
 	* \daily-cards, \./queries/daily-cards-flips-chapters-courses
 	* \daily-time-spent, \./queries/daily-time-spent
 	* \daily-opens, \./queries/daily-opens
+	* \daily-payments, \./queries/daily-payments
 	* \daily-ratings, \./queries/daily-ratings
 	* \daily-subscriptions, \./queries/daily-subscriptions
 	* \daily-depth, \./queries/daily-depth

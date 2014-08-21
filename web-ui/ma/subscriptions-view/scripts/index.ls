@@ -1,9 +1,11 @@
 {
 	from-error-value-callback
 	promise-monad
+	parallel-sequence
+	serial-sequence
 	to-callback
 } = require \promises-ls
-{each, map, id, find, lists-to-obj} = require \prelude-ls
+{each, map, id, find, lists-to-obj, drop, zip-with} = require \prelude-ls
 
 input-date = (name) ->
 	d3.select '#main-controls [name=' + name + ']' .node!
@@ -11,10 +13,8 @@ input-date = (name) ->
 input-date \sampleFrom .value = "2014-07-27"
 input-date \sampleTo .value = moment!.add \days, 1 .format \YYYY-MM-DD\
 
-input-date \queryFrom .value = moment!.add \days, -14 .format \YYYY-MM-DD\
+input-date \queryFrom .value = moment!.add \days, -21 .format \YYYY-MM-DD\
 input-date \queryTo .value = moment!.add \days, 1 .format \YYYY-MM-DD\
-
-how-many-days = 30
 
 data-cols = []
 data-rows = []
@@ -59,47 +59,81 @@ update = ->
 
 update!
 
-format-p1 = d3.format \.1%
-format-t = (timestamp)-> moment(new Date(timestamp)).format("DD-MM")
+format-d1 = d3.format \.1f
+format-t = (timestamp)-> moment(new Date timestamp).format "DD-MM"
 
 fill = (func)->
 	[start, end] = <[queryFrom queryTo]> |> map input-date >> (.valueAsDate.getTime!)
 	[start til end by 86400000] |> map func
 
+s-div = (a,b)-> if a == b == 0 then 0 else a / b
+
 query = ->	
 
-	timezone = parseInt (document.getElementById "timezone").value
-
+	timezone = parseInt (document.getElementById "timezone").value	
 	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
 	
 	data-cols := [""] ++ fill format-t
-	data-rows := ["Active users", "Viewed payment page", "Tapped buy button", "Purchased"] |> map -> [it] ++ (fill -> "...")
-
+	data-rows := [		
+		["Active users"] ++ fill -> "..."
+		["Unique payment page views"] ++ fill -> "..."
+		["<Payment page views>"] ++ fill -> "..."
+		["Unique buy button taps"] ++ fill -> "..."
+		["<Buy button taps>"] ++ fill -> "..."
+		["Subscriptions"] ++ fill -> "..."
+		["Known renewals"] ++ fill -> "..."
+	]
 	update!
 
-	(error, daily-subscriptions) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-subscriptions/#{timezone}/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
+	(results) <- (`promise-monad.bind`) parallel-sequence [
+		((from-error-value-callback d3.json, d3) "/query/daily-active-users/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->
+			data-rows[0] := ["Active users"] ++ (results |> map (.count))
+			update!
 
-	pretty = (m)-> JSON.stringify(m, null, 4)
+		((from-error-value-callback d3.json, d3) "/query/daily-subscription-page-views/240/#{queryFrom}/#{queryTo}/true/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) -> 
+			unique-subscription-page-views = results |> map (.count)
+			data-rows[1] := ["Unique payment page views"] ++ unique-subscription-page-views
+			update!
 
-	data-rows := [
-		["Active users"] ++ (daily-subscriptions |> map -> "...")
-		["Viewed Payment page"] ++ (daily-subscriptions |> map (.subscriptionPageViews))
-		["Tapped Buy Button"] ++ (daily-subscriptions |> map (.buyTries))
-		["Payments"] ++ (daily-subscriptions |> map (.purchases))		
-	]	
+			((from-error-value-callback d3.json, d3) "/query/daily-subscription-page-views/240/#{queryFrom}/#{queryTo}/false/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) -> 
+				data-rows[2] := ["<Payment page views>"] ++ ((zip-with s-div, (results |> map (.count)), unique-subscription-page-views) |> map format-d1)
+				update!
 
-	update!
+		((from-error-value-callback d3.json, d3) "/query/daily-buy-button-taps/240/#{queryFrom}/#{queryTo}/true/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->			
+			unique-button-taps = results |> map (.count)
+			data-rows[3] := ["Unique buy button taps"] ++ unique-button-taps
+			update!
 
-	(error, daily-users) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/daily-active-users/#{timezone}/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
+			((from-error-value-callback d3.json, d3) "/query/daily-buy-button-taps/240/#{queryFrom}/#{queryTo}/false/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->			
+				data-rows[4] := ["<Buy button taps>"] ++ ((zip-with s-div, (results |> map (.count)), unique-button-taps) |> map format-d1)
+				update!
 
-	data-rows[0] = ["Active users"] ++ (daily-users |> map (.count))
-	
-	update!
+		((from-error-value-callback d3.json, d3) "/query/daily-subscriptions/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.bind` (results) ->
+			subscriptions = results |> map (.count)
+			data-rows[5] := ["Subscriptions"] ++ subscriptions
+			update!		
 
-query!
+			((from-error-value-callback d3.json, d3) "/query/daily-payments/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->
+				data-rows[6] := ["Known renewals"] ++ (zip-with (-), (results |> map (.count)), subscriptions)
+				update!
 
-[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)
+		# serial-sequence [
+		# 	((from-error-value-callback d3.json, d3) "/query/daily-subscriptions/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->
+		# 		data-rows[5] := ["Subscriptions"] ++ (results |> map (.count))			
+		# 		update!		
 
-(error, results) <- to-callback <| (from-error-value-callback d3.json, d3) "/query/media-sources/CA,IE,US"
+		# 	((from-error-value-callback d3.json, d3) "/query/daily-payments/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->
+		# 		data-rows[6] := ["Known renewals"] ++ (zip-with (-), (results |> map (.count)), (drop 1 data-rows[5]))
+		# 		update!
+		# ]
 
-media-source-tree.create(results)!
+	]
+
+populate-sources = ->
+	(results) <- (`promise-monad.ffmap`) (from-error-value-callback d3.json, d3) "/query/media-sources"
+	media-source-tree.create results
+
+(error, results) <- to-callback <| parallel-sequence [populate-sources!, query!]
+throw error if !!error
+console.log "DONE!", results
+

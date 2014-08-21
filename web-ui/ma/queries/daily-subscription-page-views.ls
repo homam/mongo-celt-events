@@ -19,13 +19,14 @@ fill-in-the-gaps = (timezone, query-from, query-to, days) -->
     empty-list = [query-from til query-to by 86400000]  |> map -> {_id: (it - it % 86400000) / 86400000, count: 0}
 
     days |> fold ((memo, value)->         
-        index = empty-list |> find-index -> it._id == value._id        
+        index = empty-list |> find-index ->             
+            it._id == value._id        
         memo[index] = value if index != -1
         memo
     ),  empty-list
     
 
-query = (db, timezone, query-from, query-to, countries = null, sample-from = null, sample-to = null, sources = null) ->
+query = (db, timezone, query-from, query-to, unique-views = true, countries = null, sample-from = null, sample-to = null, sources = null) ->
     
     (success, reject) <- new-promise    
     (err, devices) <- utils.get-devices-from-media-sources db, sources    
@@ -37,9 +38,9 @@ query = (db, timezone, query-from, query-to, countries = null, sample-from = nul
                     country: $in: countries
                     serverTime: $gte: query-from, $lte: query-to
                     "device.adId": {$exists: 1} <<< if !!devices then $in: devices else {}
-                    "event.name": "IAP-PurchaseVerified"
-                    "event.valid": true
-            } 
+                    "event.name": "transition"
+                    "event.toView.name": "Subscription"
+            }
             {
                 $project:
                     installationTime: $subtract: ["$serverTime", "$timeDelta"]
@@ -56,22 +57,24 @@ query = (db, timezone, query-from, query-to, countries = null, sample-from = nul
                 []
         ) ++ [
             {
-                $group:
-                    _id: "$device.adId"
-                    subscriptionTimestamp: $first: "$serverTime"
-            }
-            {
                 $project:
-                    subscriptionTimestamp: $add: ["$subscriptionTimestamp", timezone * one-minute]
+                    subscriptionTimestamp: $add: ["$serverTime", timezone * one-minute]
+                    device: 1
             }
             {
                 $project:
                     subscriptionDate: $divide: [$subtract: ["$subscriptionTimestamp", $mod: ["$subscriptionTimestamp", 86400000]], 86400000]
+                    device: 1
             }
             {
                 $group:
-                    _id: "$subscriptionDate"
+                    _id: adId: "$device.adId", subscriptionDate: "$subscriptionDate"
                     count: $sum: 1
+            }            
+            {
+                $group:
+                    _id: "$_id.subscriptionDate"
+                    count: if unique-views then $sum: 1 else $sum: "$count"
             }
             {
                 $sort: _id: 1
