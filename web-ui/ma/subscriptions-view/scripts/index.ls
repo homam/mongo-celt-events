@@ -8,21 +8,6 @@
 } = require \promises-ls
 {each, map, id, find, lists-to-obj, drop, zip-with} = require \prelude-ls
 
-# p1 = new-promise (res, rej) ->
-# 	res "hello"
-
-# f1 = (word) -> 
-# 	new-promise (res, rej) ->
-# 		return rej (new Error 'WW')
-# 		res <| word.length
-
-# p = p1 `promise-monad.bind` f1
-# (err, res) <- to-callback p
-# console.log err, res
-# throw err if !!err
-# return
-
-
 
 input-date = (name) ->
 	d3.select '#main-controls [name=' + name + ']' .node!
