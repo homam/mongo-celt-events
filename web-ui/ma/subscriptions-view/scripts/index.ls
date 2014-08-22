@@ -102,14 +102,14 @@ query = ->
 			data-rows[1] := ["Unique payment page views"] ++ unique-subscription-page-views
 			update!
 
-			results <- (`promise-monad.ffmap`) get-unique-query "daily-subscription-page-views", false
+			results <- promise-monad.ffmap get-unique-query "daily-subscription-page-views", false
 			data-rows[2] := ["<Payment page views>"] ++ zip-with s-div >> format-d1, (results |> map (.count)), unique-subscription-page-views
 
 		(get-unique-query "daily-buy-button-taps", true) `promise-monad.bind` (results) ->			
 			unique-button-taps = results |> map (.count)
 			data-rows[3] := ["Unique buy button taps"] ++ unique-button-taps
 
-			results <- (`promise-monad.ffmap`) get-unique-query "daily-buy-button-taps", false
+			results <- promise-monad.ffmap get-unique-query "daily-buy-button-taps", false
 			data-rows[4] := ["<Buy button taps>"] ++ zip-with s-div >> format-d1, (results |> map (.count)), unique-button-taps
 			update!
 
@@ -118,7 +118,7 @@ query = ->
 			data-rows[5] := ["Genuine subscriptions"] ++ subscriptions
 			update!		
 
-			results <- (`promise-monad.ffmap`) get-query "daily-payments"
+			results <- promise-monad.ffmap get-query "daily-payments"
 			data-rows[7] := ["Known renewals"] ++ zip-with (-), (results |> map (.count)), subscriptions
 
 		(get-unique-query "daily-subscriptions", false) `promise-monad.bind` (results) ->
@@ -128,7 +128,7 @@ query = ->
 	] |> map (`promise-monad.ffmap` update)
 
 populate-sources = -> 
-	(results) <- (`promise-monad.ffmap`) get "/query/media-sources"
+	(results) <- promise-monad.ffmap get "/query/media-sources"
 	media-source-tree.create results
 
 

@@ -87,6 +87,9 @@ format-p1 = d3.format \.1%
 format-d1 = d3.format ',.1f'
 format-d0 = d3.format ',f'
 
+get = from-error-value-callback d3.json, d3
+
+
 query = ->
 
 	update-data-rows = (data-rows, name, results, day-selector, formatter) ->
@@ -96,8 +99,9 @@ query = ->
 
 	[sampleFrom, sampleTo, queryFrom, queryTo] = <[sampleFrom sampleTo queryFrom queryTo]> |> map input-date >> (.value)	
 
+	get-query = (what) -> get "/query/#{what}/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
 
-	(results) <- (`promise-monad.bind`) (from-error-value-callback d3.json, d3) "/query/daily-opens/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}"
+	results <- promise-monad.bind get-query "daily-opens"
 
 	base = [0 to how-many-days] |> map (d) -> 
 		results |> find (.day == d) |> (-> it?.base or 0) 
@@ -114,13 +118,12 @@ query = ->
 
 	update!
 
-	(results) <- (`promise-monad.bind`) parallel-sequence [
-		((from-error-value-callback d3.json, d3) "/query/daily-time-spent/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) -> 
+	results <- promise-monad.bind <| parallel-sequence <| [
+		(get-query "daily-time-spent") `promise-monad.ffmap` (results) -> 
 			data-rows := update-data-rows data-rows, \sessions, results, (.day), -> if !!it then format-d1 it.sessions/it.users else "-"
 			data-rows := update-data-rows data-rows, \time, results, (.day), -> if !!it then format-d1 (it.avgDailyDuration/60) else "-"
-			update!
 
-		((from-error-value-callback d3.json, d3) "/query/daily-cards/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->
+		(get-query "daily-cards") `promise-monad.ffmap` (results) ->
 			data-rows := update-data-rows data-rows, \interacted, results, (._id), -> if !!it then format-p0 it.users/users[it._id] else "-"
 
 			<[flips backFlips chapters courses]> |> each (field) ->
@@ -133,28 +136,23 @@ query = ->
 			] |> each ([field, formatter]) -> 
 				data-rows := update-data-rows data-rows, field, results, (._id), formatter
 
-			update!
-
-		((from-error-value-callback d3.json, d3) "/query/daily-ratings/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->
+		(get-query "daily-ratings") `promise-monad.ffmap` (results) ->
 			<[rated never remind]> |> each (field) ->
 				data-rows := update-data-rows data-rows, field, results, (._id), -> if !!it then format-d0 it[field] else "-"
 
-			update!
-
-		((from-error-value-callback d3.json, d3) "/query/purchased-day/240/#{queryFrom}/#{queryTo}/CA,IE,US/#{sampleFrom}/#{sampleTo}/#{sources}") `promise-monad.ffmap` (results) ->
+		(get-query "purchased-day") `promise-monad.ffmap` (results) ->
 			<[userSubscription]> |> each (field) ->
 				data-rows := update-data-rows data-rows, field, results, (._id), -> if !!it then format-d0 it[field] else 0
 				
-			update!
-	]
+	] |> map (`promise-monad.ffmap` update)
 
 
 populate-sources = ->
-	(results) <- (`promise-monad.ffmap`) (from-error-value-callback d3.json, d3) "/query/media-sources"
+	(results) <- promise-monad.ffmap get "/query/media-sources"
 	media-source-tree.create results
 
 
 
 (error, results) <- to-callback <| parallel-sequence [populate-sources!, query!]
-throw error if !!error
+return console.error error if !!error
 console.log "DONE!", results
