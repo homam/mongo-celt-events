@@ -8,6 +8,34 @@ query-to   = moment "2014-08-18" .unix! * 1000
 now = moment!.unix! * 1000
 
 
+add-push-message = ->
+	(res, error) <- db.IOSPushMessages.insert do
+		{
+			"alert" : "Homam 6",
+			"device" : {
+				"adId" : "11E6213D-AB12-40DF-9F67-67F2D21287CE",
+				"token" : "e952f676cff4cb629217616664a508bbb757ecc929bfea037474e86a3f9b391f"
+			},
+			"payload" : {
+				"type" : "Route",
+				"viewControllerName" : "Chapter",
+				"viewModelDefinition" : {
+				"courseId" : 108,
+				"resumeCourse" : true
+				}
+			}
+			"sendTime": 1409061011000 #new Date!.getTime! - (1000 * 60 * 60 * 4)
+			"userStatus" : null,
+			"transmissionTime" : null,
+			"transmissionStatus" : "pending"
+		}
+
+	console.log res, error
+	
+add-push-message!
+
+return
+
 filter-devices-that-support-push = (adIds, callback) ->
 
 	(err, results) <- db.collection("IOSUsers").aggregate do 
@@ -91,6 +119,7 @@ console.log res.length
 throw err if !!err
 console.log res
 console.log res.length
+
 
 
 db.close!
