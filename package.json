@@ -10,6 +10,7 @@
     "deep-extend": "^0.2.11",
     "ejs": "^1.0.0",
     "express": "^4.6.0",
+    "fast-csv": "^0.5.2",
     "minimist": "^0.2.0",
     "moment": "^2.7.0",
     "mongodb": "^1.4.7",
